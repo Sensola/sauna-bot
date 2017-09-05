@@ -32,7 +32,7 @@ def get_reservations(s, item, date=None):
     a = s.get(f"{BASE_URL}/varaus/service/timetable/{item.value}/{date:%d/%m/%y}")
     a.encoding = "utf-8"
 
-    soup = bs(a.text, "lxml")
+    soup = bs(a.text, "html.parser")
     print(soup)
 
         
@@ -49,7 +49,7 @@ def main():
         raise SystemExit("Login failed")
     a.encoding = "utf-8"
 
-    soup = bs(a.text, "lxml")
+    soup = bs(a.text, "html.parser")
     
     find_users_reservations(soup)
 
