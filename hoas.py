@@ -26,20 +26,29 @@ class Sauna(Enum):
 BASE_URL = "https://booking.hoas.fi"
 
 
-def get_reservations(s, item, date=None):
+def get_vacant(s, item, date=None):
+    # s is session, item example: Sauna.H, date is datetime object
     date = date or dt.today()
     
     a = s.get(f"{BASE_URL}/varaus/service/timetable/{item.value}/{date:%d/%m/%y}")
     a.encoding = "utf-8"
 
     soup = bs(a.text, "html.parser")
-    print(soup)
+    # print(soup)
+    vacant = soup.find(class_='calendar').find_all("a")
+    results = []
+    for shift in vacant:
+        data_date = shift['data-date']
+        link = shift['href']
+        results.append([data_date, link])
+
+    return results
 
         
 def get_all_saunas(s, date=None):
     data = {}
     for sauna in Sauna:
-        data[sauna.name] = get_reservations(s, sauna, date)
+        data[sauna.name] = get_vacant(s, sauna, date)
 
 
 def main():
@@ -49,28 +58,14 @@ def main():
         raise SystemExit("Login failed")
     a.encoding = "utf-8"
 
-    soup = bs(a.text, "html.parser")
+    # soup = bs(a.text, "html.parser")
     
-    find_users_reservations(soup)
+    # find_users_reservations(soup)
+    print(get_vacant(s, Sauna.H))
 
 
 def parse_common_sauna(saunas: ([...], [...])):
     pass
-
-
-def lmap(*args,  **kwargs):
-    return list(map(*args, **kwargs))
-
-
-def replaced(t, repl, with_=""):
-    if isinstance(repl, str):
-        repl = [repl]
-        
-    # if isinstance(str, with_):
-    #    with_ = lambda x:   x      
-    for c in repl:
-        t = t.replace(c, with_)
-    return t
 
 
 def find_users_reservations(soup):
