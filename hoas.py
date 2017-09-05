@@ -62,7 +62,7 @@ def lmap(*args,  **kwargs):
     return list(map(*args, **kwargs))
 
 
-def replaced(t, repl, with_ = ""):
+def replaced(t, repl, with_=""):
     if isinstance(repl, str):
         repl = [repl]
         
@@ -82,9 +82,8 @@ def find_users_reservations(soup):
 
         if link:
             # This is user made reservation
-            parts = [it.replace(chr(0xa0)," ") for it
+            parts = [it.replace(chr(0xa0), " ") for it
                      in r.text.replace(" - ", "-").split(" ")]
-            
         else:
             # This is a Common sauna
             parts = [it.strip() for it in r.text.split("-\n")]
@@ -92,8 +91,8 @@ def find_users_reservations(soup):
 
 
 if __name__ == "__main__":
-    with open("config.yaml") as c:
-        config = yaml.load(c)
+    with open("config.yaml") as conf:
+        config = yaml.load(conf)
     print(config.get("topic"))
     if config:
         LOGIN_PARAMS = config.get("login_params")
