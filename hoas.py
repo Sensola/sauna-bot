@@ -1,20 +1,21 @@
 import time
 import re
 import yaml
-
 from datetime import datetime as dt
 from bs4 import BeautifulSoup as bs
 from enum import Enum
-
 import requests
+
 
 class Laundry(Enum):
     H = 518
     E = 517
 
+
 class Dryer(Enum):
     H = 637
     E = 680
+
 
 class Sauna(Enum):
     H = 363
@@ -24,7 +25,8 @@ class Sauna(Enum):
 
 BASE_URL = "https://booking.hoas.fi"
 
-def get_reservations(s, item, date = None):
+
+def get_reservations(s, item, date=None):
     date = date or dt.today()
     
     a = s.get(f"{BASE_URL}/varaus/service/timetable/{item.value}/{date:%d/%m/%y}")
@@ -34,11 +36,12 @@ def get_reservations(s, item, date = None):
     print(soup)
 
         
-def get_all_saunas(s, date = None):
+def get_all_saunas(s, date=None):
     data = {}
     for sauna in Sauna:
         data[sauna.name] = get_reservations(s, sauna, date)
-        
+
+
 def main():
     s = requests.Session()
     a = s.post(f"{BASE_URL}/auth/login", data=LOGIN_PARAMS)
@@ -54,8 +57,10 @@ def main():
 def parse_common_sauna(saunas: ([...], [...])):
     pass
 
+
 def lmap(*args,  **kwargs):
     return list(map(*args, **kwargs))
+
 
 def replaced(t, repl, with_ = ""):
     if isinstance(repl, str):
@@ -69,7 +74,7 @@ def replaced(t, repl, with_ = ""):
 
 
 def find_users_reservations(soup):
-    res = soup.find(class_ = 'myReservations').find_all("a")
+    res = soup.find(class_='myReservations').find_all("a")
     common_saunas = []
     other = []
     for r in res:
