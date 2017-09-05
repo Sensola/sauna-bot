@@ -89,6 +89,7 @@ def find_users_reservations(soup):
 if __name__ == "__main__":
     with open("config.yaml") as c:
         config = yaml.load(c)
+    print(config.get("topic"))
     if config:
         LOGIN_PARAMS = config.get("login_params")
         if not LOGIN_PARAMS:
