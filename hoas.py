@@ -1,6 +1,5 @@
 import re
 import json
-
 import yaml
 from datetime import datetime as dt
 from enum import Enum
@@ -8,13 +7,12 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 
-
 class Laundry(Enum):
     H = 518
     E = 517
 
 
-class Washing_machine(Enum):
+class WashingMachine(Enum):
     pass
 
 
@@ -31,6 +29,7 @@ class Sauna(Enum):
 
 BASE_URL = "https://booking.hoas.fi"
 
+
 def parse_service(service_str):
     what_re = re.compile("""
                          (?P<type>Sauna|Pesula)\s\d,\s(?P<building>[HME])-(talo|rappu)
@@ -42,7 +41,6 @@ def parse_service(service_str):
     if match:
         type_, building = match["type"], match["building"]
         return enums[type_][building]
-
 
 
 def get_vacant(s, item, date=None):
@@ -87,7 +85,7 @@ def parse_common_saunas(r):
     text = r.text
 
     # replace " {EN DASH} " with dash so that time range will be "%h-%h"
-    text = text.replace(" " +chr(0x2013)+" ", "-")
+    text = text.replace(" " + chr(0x2013)+" ", "-")
 
     # Split datetime, location and info
     sauna = [it.strip() for it in text.split("-\n")]
@@ -97,10 +95,10 @@ def parse_common_saunas(r):
 
     start_time, end_time = sauna[1].split("-")
     return dict(
-            weekday = (sauna[0][:-3]),
-            where = sauna[2],
-            info = sauna[3],
-            start_time= start_time,
+            weekday=(sauna[0][:-3]),
+            where=sauna[2],
+            info=sauna[3],
+            start_time=start_time,
             end_time=end_time,
             )
 
@@ -114,39 +112,39 @@ def parse_users_reservations(r):
     text = text.replace(chr(0x2011), "-")
                 
     # split different parts separated by space and for each item 
-    parts = [it.replace(chr(0xa0)," ") for it in text.split(" ")]
+    parts = [it.replace(chr(0xa0), " ") for it in text.split(" ")]
     
     start_time, end_time = parts[1].split("-")
   
-    if "laundry" in r.get("class") or "washer"  in r.get("class"):
+    if "laundry" in r.get("class") or "washer" in r.get("class"):
         info, where = parts[2].split(" - ")
     else:
         where = parts[2]
         info = ""
-    return  dict(
-            date = parts[0][3:],
-            start_time= start_time,
+    return dict(
+            date=parts[0][3:],
+            start_time=start_time,
             end_time=end_time,
-            where = where,
-            info = info
+            where=where,
+            info=info
         )
 
 
 def find_users_reservations(soup: bs) -> dict:
     """Find users reservations"""
-    res = soup.find(class_ = 'myReservations').find_all("a")
+    res = soup.find(class_='myReservations').find_all("a")
     common_saunas = []
     saunas = []
     laundry = []
     for r in res:
         link = r.get("href")
-        type_ =  r.get("class")
+        type_ = r.get("class")
         
         text = r.text
         if link:
             # This is user made reservation
             reservation = parse_users_reservations(r)
-            #print(type_)
+            # print(type_)
             # print(json.dumps(reservation, indent=4))
             if "washer" in type_ or "dryer" in type_:
                 laundry.append(reservation)
@@ -166,6 +164,6 @@ if __name__ == "__main__":
     if config:
         LOGIN_PARAMS = config.get("login_params")
         if not LOGIN_PARAMS:
-               LOGIN_PARAMS = {"login": input("username: "),
-                               "password": input("password: ")}
+            LOGIN_PARAMS = {"login": input("username: "),
+                            "password": input("password: ")}
     main()
