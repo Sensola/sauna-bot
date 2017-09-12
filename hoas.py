@@ -5,7 +5,7 @@ from datetime import datetime as dt
 from enum import Enum
 import requests
 from bs4 import BeautifulSoup as bs
-
+import getpass
 
 class Laundry(Enum):
     H = 518
@@ -26,9 +26,39 @@ class Sauna(Enum):
     M = 364
     E = 362
 
+class Service_state(Enum):
+    free = 0
+    reserved = 1
+    our = 2
 
+class AuthException(Exception):
+    pass
+    
 BASE_URL = "https://booking.hoas.fi"
 
+
+def new_login(login_params) -> requests.Session:
+    """ """
+    s = requests.Session()
+    a = s.post(f"{BASE_URL}/auth/login", data=LOGIN_PARAMS)
+    if a.url == f"{BASE_URL}/auth/login":
+        raise AuthException("Login failed")
+    return s
+
+def scrape_services(s):
+    """
+    Crawl through hoas site and find service codes for viewing and reserving services.
+    returns {'laundry': 
+                    {'H': {'view': 11, reserve: 12}, 
+                     'E': ...
+                    }
+              'sauna':
+                    ...
+               ...
+            }        
+    """
+    ## TODO
+    pass
 
 def parse_service(service_str):
     what_re = re.compile("""
@@ -41,44 +71,33 @@ def parse_service(service_str):
     if match:
         type_, building = match["type"], match["building"]
         return enums[type_][building]
+        
+def get_hoas_page(s, service=None, date=None):
+    date = date or dt.today()
+    service = service or 123
+    
+    a = s.get(f"{BASE_URL}/varaus/service/timetable/{service}/{date:%d/%m/%y}")
+    a.encoding = "utf-8"
+    
+    return a
 
-
-def get_vacant(s, item, date=None):
+def parse_vacant(soup: bs):
     # s is session, item example: Sauna.H, date is datetime object
 
-    date = date or dt.today()
-    
-    a = s.get(f"{BASE_URL}/varaus/service/timetable/{item.value}/{date:%d/%m/%y}")
-    a.encoding = "utf-8"
-
-    soup = bs(a.text, "html.parser")
-    # print(soup)
     vacant = soup.find(class_='calendar').find_all("a")
     results = []
     for shift in vacant:
         data_date = shift['data-date']
         link = shift['href']
         results.append([data_date, link])
-
+        
     return results
 
-
+        
 def get_all_saunas(s, date=None):
     data = {}
     for sauna in Sauna:
-        data[sauna.name] = get_vacant(s, sauna, date)
-
-
-def main():
-    s = requests.Session()
-    a = s.post(f"{BASE_URL}/auth/login", data=LOGIN_PARAMS)
-    if a.url == f"{BASE_URL}/auth/login":
-        raise SystemExit("Login failed")
-    a.encoding = "utf-8"
-    soup = bs(a.text, "html.parser")
-    
-    saunas, common_saunas, laundry = find_users_reservations(soup)
-    print(get_vacant(s, Sauna.H))
+        data[sauna.name] = parse_vacant(s, sauna, date)
 
 
 def parse_common_saunas(r):
@@ -157,13 +176,33 @@ def find_users_reservations(soup: bs) -> dict:
     return saunas, common_saunas, laundry
 
 
+def get_timetable(s, service=None, date=None):
+    # Return dummy data
+    return {17:Service_state.free,
+            18:Service_state.reserved,
+            19:Service_state.reserved,
+            20:Service_state.free,
+            21:Service_state.our,
+            }
+    
+    
 if __name__ == "__main__":
     with open("config.yaml") as conf:
         config = yaml.load(conf)
     print(config.get("topic"))
+    LOGIN_PARAMS = None
     if config:
         LOGIN_PARAMS = config.get("login_params")
-        if not LOGIN_PARAMS:
-            LOGIN_PARAMS = {"login": input("username: "),
-                            "password": input("password: ")}
-    main()
+        
+    if not LOGIN_PARAMS:
+        LOGIN_PARAMS = {"login": input("username: "),
+                        "password": getpass.getpass("password: ")}
+
+    s = new_login(LOGIN_PARAMS)
+    a = get_hoas_page(s)
+
+    soup = bs(a.text, "html.parser")
+    for i in find_users_reservations(soup):
+        for j in i:
+            print(j)
+    print(*parse_vacant(soup), sep="\n")
