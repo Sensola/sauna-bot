@@ -13,8 +13,14 @@ TOKEN = "380540735:AAFhwCOUrjnLF_9F7yhPP1iFme0Lh-ygI8k"
 
 
 class Switch(dict):
+    @staticmethod
+    @asyncio.coroutine
+    def default(*args, **kwargs):
+        print(args, kwargs, sep="\n")
+        yield
+
     def __missing__(self, key):
-        return self.get("default") or (lambda x: None)
+        return self.get("default") or self.default
 
 
 class SensolaBot(telepot.aio.Bot):
@@ -52,8 +58,13 @@ class SensolaBot(telepot.aio.Bot):
         if flavor == "chat" and details[0] == "text":
             logging.info(f"Received message: {msg['text']}")
             content_type, chat_type, chat_id = details
-            yield from self.cmds[msg['text']](
-                self, type=chat_type, id=chat_id, text=msg['text'])
+            cmd = msg['text'].split(" ")[0]
+            if len(msg['text'].split(" ")) > 1:
+                cmd_args = msg['text'].split(" ")[1:]
+            else:
+                cmd_args = []
+            yield from self.cmds[cmd](
+                self, type=chat_type, id=chat_id, cmd=cmd, args=cmd_args)
         elif flavor == "inline_query":
             query_id, sender_id, query = details
             # Handle inline query
@@ -74,8 +85,11 @@ class SensolaBot(telepot.aio.Bot):
 
     @asyncio.coroutine
     def show(self, **kwargs):
-        chat_id = kwargs["id"]
-        print("[send table to:]", chat_id)
+        chat_id, args = kwargs["id"], kwargs["args"]
+        if len(args) > 0:
+            print(f"[send table of {args[0]} to:]", chat_id)
+        else:
+            print("[send table of today to:]", chat_id)
 
     @asyncio.coroutine
     def sauna(self, **kwargs):
