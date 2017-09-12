@@ -11,9 +11,15 @@ logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
 TOKEN = "380540735:AAFhwCOUrjnLF_9F7yhPP1iFme0Lh-ygI8k"
 
 
+class Switch(dict):
+    def __missing__(self, key):
+        return self.get("default") or (lambda x: None)
+
+
 class SensolaBot(telepot.aio.Bot):
-    def __init__(self, token):
+    def __init__(self, token, cmds):
         super().__init__(token)
+        self.cmds = cmds
 
     @staticmethod
     def generate_uuid():
@@ -43,10 +49,10 @@ class SensolaBot(telepot.aio.Bot):
         flavor, details = telepot.flance(msg)
         # TODO: log?
         if flavor == "chat" and details[0] == "text":
+            logging.info(f"Received message: {msg['text']}")
             content_type, chat_type, chat_id = details
-            # Check for commands
-            logging.info(f"Got a message: {msg['text']}")
-            yield from self.send_message(chat_id, f"Got a chat message:\n{msg['text']}")
+            yield from self.cmds[msg['text']](
+                self, type=chat_type, id=chat_id, text=msg['text'])
         elif flavor == "inline_query":
             query_id, sender_id, query = details
             # Handle inline query
@@ -61,32 +67,27 @@ class SensolaBot(telepot.aio.Bot):
             pass
 
     @asyncio.coroutine
-    def update_reservations(self, reservations):
-        # TODO: Get reservations from another module and update a list of active reservations
-
-        # If there's an object in the list with no active reservation, remove
-        # If there's an active reservation without object in the list, create
-
-        return []
+    def test(self, **kwargs):
+        chat_type, chat_id, text = kwargs.values()
+        print("received message:", chat_type, chat_id, text)
 
     @asyncio.coroutine
-    def create_reservation(self, reservation_id, inline_id, reservation_location, reservation_time):
-        # TODO: Gotta think how to store reservations
-        pass
+    def show(self, **kwargs):
+        chat_id = kwargs["id"]
+        print("[send table to:]", chat_id)
 
     @asyncio.coroutine
-    def set_user_participation(self, reservation_id, user_name, participation):
-        details = "GET RESERVATION DETAILS"  # TODO
-        # TODO: Check if user is already participating and has the same participation.
-        # TODO: If it's the same, ignore; if it's different, change; if doesn't exist, create.
-        modified = None  # Created or changed
-        if modified:
-            pass
-        else:
-            logging.info("Status not modified")
+    def sauna(self, **kwargs):
+        chat_id = kwargs["id"]
+        print("[send saunas to:]", chat_id)
 
 
-sensola_bot = SensolaBot(TOKEN)
+commands = Switch({"/show": SensolaBot.show,
+                   "/sauna": SensolaBot.sauna,
+                   "/test": SensolaBot.test, })
+
+sensola_bot = SensolaBot(TOKEN, commands)
+
 loop = asyncio.get_event_loop()
 loop.create_task(MessageLoop(
     sensola_bot, handle=sensola_bot.handle).run_forever())
