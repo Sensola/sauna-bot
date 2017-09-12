@@ -6,7 +6,8 @@ from telepot.aio.loop import MessageLoop
 from pprint import pprint
 from uuid import uuid4
 
-logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s",
+                    datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
 
 TOKEN = "380540735:AAFhwCOUrjnLF_9F7yhPP1iFme0Lh-ygI8k"
 
