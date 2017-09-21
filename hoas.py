@@ -53,12 +53,21 @@ def new_login(login_params) -> requests.Session:
         raise AuthException("Login failed")
     return s
 
-
+def get_hoas_page(s, service=None, date=None):
+    date = date or dt.today()
+    service = service or 123
+    print(date, BASE_URL, service, "{BASE_URL}/varaus/service/timetable/{service}/{date:%d/%m/%y}")
+    a = s.get(f"{BASE_URL}/varaus/service/timetable/{service}/{date:%d/%m/%y}")
+    a.encoding = "utf-8"
+    
+    return a
+    
+    
 def scrape_services(s):
     """
     Crawl through hoas site and find service codes for viewing and reserving services.
     returns {'laundry': 
-                    {'H': {'view': 11, reserve: 12}, 
+                    {'H': {'view': 11, reserve: (12,)}, 
                      'E': ...
                     }
               'sauna':
@@ -66,8 +75,33 @@ def scrape_services(s):
                ...
             }        
     """
-    # TODO
-    pass
+    service_id_re = re.compile("https://booking.hoas.fi/varaus/service/timetable/(?P<id>\d*).*")
+    final = {}
+    a = get_hoas_page(s, date=dt.today())
+    soup = bs(a.text, "html.parser")
+    items = soup.find(class_="pesuvuorot"), soup.find(class_="saunavuorot")
+    print(items)
+    for name, item in zip(("laundry", "sauna"), items):
+        final[name] = {}
+        # get url we are going to search all the things next
+        nexturl = item.get("href")
+        print(nexturl)
+        
+        # get the first views id
+        first_id = service_id_re.match(nexturl)[1]
+        
+        #get the service string of first 
+        first_name = soup.find(class_="service-nav").find(class_="selected").text
+        final[name] = {first_name: {"view": first_id}}
+        #final[name][first_name]["reserve"] 
+        print(soup.find(class_='calendar').find_all("href"))
+        while 0:
+            # todo do loop to iterate through all the sites and use sleep and check that no foreverloop
+            a = get_hoas_page(s, this)
+            soup = bs(a.text, "html.parser")
+            services = soup.find(class_="service-nav")
+            
+    print(json.dumps(final))
 
 
 def parse_service(service_str):
@@ -199,6 +233,7 @@ def get_timetable(s, service=None, date=None):
     
     
 if __name__ == "__main__":
+    
     with open("config.yaml") as conf:
         config = yaml.load(conf)
     print(config.get("topic"))
@@ -213,8 +248,9 @@ if __name__ == "__main__":
     s = new_login(LOGIN_PARAMS)
     a = get_hoas_page(s)
 
-    soup = bs(a.text, "html.parser")
-    for i in find_users_reservations(soup):
-        for j in i:
-            print(j)
-    print(*parse_vacant(soup), sep="\n")
+    #soup = bs(a.text, "html.parser")
+    #for i in find_users_reservations(soup):
+    #    for j in i:
+    #        print(j)
+    # print(*parse_vacant(soup), sep="\n")
+    scrape_services(s)
