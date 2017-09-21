@@ -7,6 +7,9 @@ import requests
 from bs4 import BeautifulSoup as bs
 import getpass
 
+# TODO: something something enums
+
+
 class Laundry(Enum):
     H = 518
     E = 517
@@ -26,24 +29,30 @@ class Sauna(Enum):
     M = 364
     E = 362
 
-class Service_state(Enum):
+
+class ServiceState(Enum):
     free = 0
     reserved = 1
     our = 2
 
+
 class AuthException(Exception):
     pass
-    
+
+
 BASE_URL = "https://booking.hoas.fi"
+
+# TODO: V Make these a class V and add an initialization function
 
 
 def new_login(login_params) -> requests.Session:
     """ """
     s = requests.Session()
-    a = s.post(f"{BASE_URL}/auth/login", data=LOGIN_PARAMS)
+    a = s.post(f"{BASE_URL}/auth/login", data=login_params)
     if a.url == f"{BASE_URL}/auth/login":
         raise AuthException("Login failed")
     return s
+
 
 def scrape_services(s):
     """
@@ -57,8 +66,9 @@ def scrape_services(s):
                ...
             }        
     """
-    ## TODO
+    # TODO
     pass
+
 
 def parse_service(service_str):
     what_re = re.compile("""
@@ -71,7 +81,8 @@ def parse_service(service_str):
     if match:
         type_, building = match["type"], match["building"]
         return enums[type_][building]
-        
+
+
 def get_hoas_page(s, service=None, date=None):
     date = date or dt.today()
     service = service or 123
@@ -80,6 +91,7 @@ def get_hoas_page(s, service=None, date=None):
     a.encoding = "utf-8"
     
     return a
+
 
 def parse_vacant(soup: bs):
     # s is session, item example: Sauna.H, date is datetime object
@@ -149,7 +161,7 @@ def parse_users_reservations(r):
         )
 
 
-def find_users_reservations(soup: bs) -> dict:
+def find_users_reservations(soup: bs) -> (dict, dict, dict):
     """Find users reservations"""
     res = soup.find(class_='myReservations').find_all("a")
     common_saunas = []
@@ -178,11 +190,11 @@ def find_users_reservations(soup: bs) -> dict:
 
 def get_timetable(s, service=None, date=None):
     # Return dummy data
-    return {17:Service_state.free,
-            18:Service_state.reserved,
-            19:Service_state.reserved,
-            20:Service_state.free,
-            21:Service_state.our,
+    return {17: ServiceState.free,
+            18: ServiceState.reserved,
+            19: ServiceState.reserved,
+            20: ServiceState.free,
+            21: ServiceState.our,
             }
     
     

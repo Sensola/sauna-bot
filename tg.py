@@ -1,3 +1,4 @@
+import hoas
 import time
 import logging
 import asyncio
@@ -94,7 +95,9 @@ class SensolaBot(telepot.aio.Bot):
     @asyncio.coroutine
     def sauna(self, **kwargs):
         chat_id = kwargs["id"]
+        saunas, common_saunas, laundry = hoas.find_users_reservations()  # TODO
         print("[send saunas to:]", chat_id)
+        pprint(saunas)
 
 
 commands = Switch({"/show": SensolaBot.show,
