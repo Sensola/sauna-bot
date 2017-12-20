@@ -59,13 +59,16 @@ class SensolaBot(telepot.aio.Bot):
         if flavor == "chat" and details[0] == "text":
             logging.info(f"Received message: {msg['text']}")
             content_type, chat_type, chat_id = details
-            cmd = msg['text'].split(" ")[0]
-            if len(msg['text'].split(" ")) > 1:
-                cmd_args = msg['text'].split(" ")[1:]
-            else:
-                cmd_args = []
-            yield from self.cmds[cmd](
-                self, type=chat_type, id=chat_id, cmd=cmd, args=cmd_args)
+            cmd, *cmd_args = msg['text'].split(" ")
+            print(repr(cmd))
+            print(self.cmds[cmd])
+            tuuba = loop.run_in_executor(None, self.cmds[cmd])
+            asdf =  asyncio.wait_for(tuuba, None)
+            msg = yield from asdf
+            yield from self.send_message(chat_id, msg)
+            
+            # yield from self.cmds[cmd](
+            #    self, type=chat_type, id=chat_id, cmd=cmd, args=cmd_args)
         elif flavor == "inline_query":
             query_id, sender_id, query = details
             # Handle inline query
@@ -98,15 +101,24 @@ class SensolaBot(telepot.aio.Bot):
         saunas, common_saunas, laundry = hoas.find_users_reservations()  # TODO
         print("[send saunas to:]", chat_id)
         pprint(saunas)
-
+    
+hoas_api = hoas.Hoas()
 
 commands = Switch({"/show": SensolaBot.show,
                    "/sauna": SensolaBot.sauna,
                    "/test": SensolaBot.test, })
-
+                   
+class BlockingSwitch(dict):
+    def __missing__(self, key):
+        print(self)
+        return (lambda *args, **kwargs: "Not correct command")
+        
+commands = BlockingSwitch({'/tt': hoas_api.get_timetables})
+print(commands['/tt']())
 sensola_bot = SensolaBot(TOKEN, commands)
 
 loop = asyncio.get_event_loop()
+loop.set_debug(True)
 loop.create_task(MessageLoop(
     sensola_bot, handle=sensola_bot.handle).run_forever())
 
