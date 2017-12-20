@@ -2,9 +2,13 @@ import re
 from functools import wraps
 import itertools
 from utils import print_raw as pr
+import datetime
 
 from bs4 import BeautifulSoup as bs
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
+
+
+Reservation = namedtuple('Reservation', 'start end where info')
 
 
 def str_to_soup(f):
@@ -16,7 +20,7 @@ def str_to_soup(f):
     return decorated
 
 
-def get_users_reservations(soup) -> (dict, dict, dict):
+def get_users_reservations(soup) -> (list, list, list):
     """Find users reservations from Beautifull soup object"""
     res = soup.find(class_='myReservations').find_all("a")
     common_saunas = []
@@ -95,10 +99,14 @@ def parse_users_reservations(r):
     else:
         where = parts[2]
         info = ""
-    return dict(
-            date=parts[0][3:],
-            start_time=start_time,
-            end_time=end_time,
+    date = parts[0][3:]
+    start = datetime.datetime.strptime(f"{date} {start_time}",
+                                       "%d.%m.%Y %H:%M")
+    end = datetime.datetime.strptime(f"{date} {end_time}",
+                                     "%d.%m.%Y %H:%M")
+    return Reservation(
+            start=start,
+            end=end,
             where=where,
             info=info
         )
