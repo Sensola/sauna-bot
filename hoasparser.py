@@ -1,6 +1,6 @@
 import re
 from functools import wraps
-import itertools 
+import itertools
 from utils import print_raw as pr
 
 from bs4 import BeautifulSoup as bs
@@ -15,7 +15,7 @@ def str_to_soup(f):
         return f(arg)
     return decorated
 
-    
+
 def get_users_reservations(soup) -> (dict, dict, dict):
     """Find users reservations from Beautifull soup object"""
     res = soup.find(class_='myReservations').find_all("a")
@@ -25,7 +25,7 @@ def get_users_reservations(soup) -> (dict, dict, dict):
     for r in res:
         link = r.get("href")
         type_ = r.get("class")
-        
+
         text = r.text
         if link:
             # This is user made reservation
@@ -35,7 +35,7 @@ def get_users_reservations(soup) -> (dict, dict, dict):
             if "washer" in type_ or "dryer" in type_:
                 laundry.append(reservation)
             if "sauna" in type_:
-                saunas.append(reservation)          
+                saunas.append(reservation)
         else:
             # This is a Common sauna, it has to be handled bit differently
             common = parse_common_saunas(r)
@@ -43,9 +43,8 @@ def get_users_reservations(soup) -> (dict, dict, dict):
     return saunas, common_saunas, laundry
 
 
-
 def parse_common_saunas(r):
-    #regs = re.compile(
+    # regs = re.compile(
     r"""
     \s*
     (?P<day>\w*)
@@ -56,9 +55,9 @@ def parse_common_saunas(r):
     \s*-\n*
     (?P<where>.*)
     \t*-\n
-    """#, re.MULTILINE | re.VERBOSE | re.UNICODE)
+    """  # , re.MULTILINE | re.VERBOSE | re.UNICODE)
     text = r.text
-    
+
     # replace " {EN DASH} " with dash so that time range will be "%h-%h"
     text = text.replace(" " + chr(0x2013)+" ", "-")
 
@@ -82,15 +81,15 @@ def parse_users_reservations(r):
     text = r.text
     # replace " - " for keeping time range together
     text = text.replace(" - ", "-")
-    
+
     # replace Non-Breaking Hyphen with dash
     text = text.replace(chr(0x2011), "-")
-                
-    # split different parts separated by space and for each item 
+
+    # split different parts separated by space and for each item
     parts = [it.replace(chr(0xa0), " ") for it in text.split(" ")]
-    
+
     start_time, end_time = parts[1].split("-")
-  
+
     if "laundry" in r.get("class") or "washer" in r.get("class"):
         info, where = parts[2].split(" - ")
     else:
@@ -104,12 +103,13 @@ def parse_users_reservations(r):
             info=info
         )
 
+
 def get_reservation_ids(soup):
 
     topics, cal, reservations_left = parse_calendar(soup)
     fin = OrderedDict(
             itertools.islice(zip(topics, itertools.repeat(None)), 1, None))
-    
+
     if not cal:
         return fin
     # First row is (sub)services' names and second is remaining reservations
@@ -117,15 +117,16 @@ def get_reservation_ids(soup):
         # Skip times
         for name, (status, item) in \
                 itertools.islice(zip(topics, items), 1, None):
-                
+
             if status == 1:
                 continue
             print(item.get("href"))
             fin[i] = item.get("href")
     return fin
 
+
 def parse_calendar(soup):
-    ## TODO: Check that this works also with laundries
+    # TODO: Check that this works also with laundries
     calendar = soup.find(class_='calendar').find_all("tr")
     final_cal = []
     cal = iter(calendar)
@@ -136,7 +137,7 @@ def parse_calendar(soup):
     except StopIteration:
         # There is no data for this day
         reservations_left = ""
-        
+
     print(topics)
     print(reservations_left)
     for row in cal:
@@ -149,21 +150,16 @@ def parse_calendar(soup):
             info = {}
             # defafult reserved
             status = 1
-            
+
             if data.a:
                 info = data.a.attrs
                 # ´free
                 status = 0
                 if False:
-                    ## TODO: handle users reserved
+                    # TODO: handle users reserved
                     status = 2
                     pass
             this_row.append((status, info))
         final_cal.append(this_row)
-         
+
     return topics, final_cal, reservations_left
-        
-        
-        
-        
-        
