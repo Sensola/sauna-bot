@@ -18,9 +18,11 @@ from utils import print_raw as pr
 class AuthException(Exception):
     pass
 
+
 class HoasInterface:
     BASE_URL = "https://booking.hoas.fi"
     def __init__(self, login_params):
+        self.cache = {}
         self.login_params = login_params
         self.session = requests.Session()
         self._login()
@@ -35,7 +37,7 @@ class HoasInterface:
         if page.url == f"{self.BASE_URL}/auth/login":
             raise AuthException("Login failed")
 
-    def view_page(self, service: int=None, date: datetime.datetime = None):
+    def view_page(self, service: int=None, date: datetime.datetime = None, cache_time=20):
         try:
             date = f"{date:%d/%m/%y}"
         except Exception:
@@ -44,6 +46,13 @@ class HoasInterface:
         if service is None:
             service = 363 
         
+        cache_key = frozenset((service, date))
+        new_request_time = time.time() - cache_time
+        if (cache_key in self.cache 
+            and self.cache[cache_key][0] >= new_request_time):
+            print("return from cache",self.cache[cache_key][0] ,  cache_time, new_request_time)
+            return self.cache[cache_key][1]
+            
         page = self.session.get(f"{self.BASE_URL}/varaus/service/timetable/"
                                 f"{service}/{date}")
                                 
@@ -51,6 +60,8 @@ class HoasInterface:
             self._login()
             page = self.get_hoas_page(service, date)
         page.encoding = "utf-8"
+        
+        self.cache[cache_key] = (time.time(), page)
         return page
         
     def reserve(self, service, date):
