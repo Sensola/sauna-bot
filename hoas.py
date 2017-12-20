@@ -135,15 +135,27 @@ class Hoas:
         return msg
 
     def get_reservations(self):
-        return NotImplemented
+        sauna_set = set()
+        for account in self.accounts:
+            page = account.view_page().text
+            soup = bs(page, "html.parser")
+            (saunas, common_saunas, laundry) = \
+                hoasparser.get_users_reservations(soup)
+            for sauna in saunas:
+                sauna_set.add(sauna)
+        msg = "Reservations:\n"
+        for sauna in sorted(sauna_set):
+            msg += f"{sauna.start:%a %d.%m.%Y %H:%M} - {sauna.end:%H:%M}" \
+                   f"in {sauna.where} {sauna.info}\n"
+        return msg
 
-    def reserve():
+    def reserve(self):
         return NotImplemented
 
 
 def main(config):
     a = Hoas()
-    print(a.get_timetables())
+    print(a.get_reservations())
 
 
 if __name__ == "__main__":

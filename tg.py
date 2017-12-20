@@ -118,7 +118,8 @@ class BlockingSwitch(dict):
         return (lambda *args, **kwargs: "Not correct command")
 
 
-commands = BlockingSwitch({'/tt': hoas_api.get_timetables})
+commands = BlockingSwitch({'/tt': hoas_api.get_timetables,
+                           '/show': hoas_api.get_reservations})
 print(commands['/tt']())
 sensola_bot = SensolaBot(TOKEN, commands)
 
