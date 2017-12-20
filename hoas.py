@@ -1,6 +1,7 @@
 import re
 import json
 import time
+import sys
 
 import datetime
 
@@ -75,14 +76,6 @@ class HoasInterface:
         is reservation, get id and cancel with it"""
         pass
 
-def load_config():
-    config = None
-    try:
-        with open("config.yaml") as conf:
-            config = yaml.load(conf)
-    except Exception:
-        pass
-    return config
 
 def create_config(hoas):
     d = datetime.datetime.today() + datetime.timedelta(days=3)
@@ -94,20 +87,54 @@ def create_config(hoas):
     for i in (hoasparser.get_reservation_ids(soup)).items():
         print(i)
     
+
+class Hoas:
+    def __init__(self, config={}):
+        self.config = config or self.load_config()
+        try:
+            self.accounts = [HoasInterface(account) 
+                            for account in self.config["accounts"]]
+        except Exception:
+            print("Couldn't parse configs", file=sys.stderr) # Todo: Use logger
+            raise
+    def load_config(self):
+        config = None
+        try:
+            with open("config.yaml") as conf:
+                config = yaml.load(conf)
+        except Exception:
+              print("Couldn't load configs", file=sys.stderr) # Todo: Use logger
+              raise
+        print(config)
+        return config
+        
+    def get_timetables(self, service: int=None, date: datetime=None, cache_time=10):
+    
+        state = ("Vapaa", "Varattu", "Varaus")
+        for account in self.accounts:
+            page = account.view_page(date=date).text    
+            soup = bs(page, "html.parser")
+            topics, cal, left = hoasparser.parse_calendar(soup)
+            width = max(*map(len, topics), *map(len, state))
+            
+            msg = ((f"{{:{width}}}"*len(topics)).format(*topics)) + "\n"
+            for row in cal:
+                time, *items = row
+                print(row)
+                msg +=(f"{{:{width}}}" * len(row)).format(time, *(state[r[0]] for r in items)) + "\n"
+            msg += left
+        return msg
+        
+    def get_reservations(self):
+        return NotImplemented
+
+    def reserve():
+        return NotImplemented
     
 def main(config):
-    hoas = HoasInterface(config["login_params"])
-    # alex = HoasInterface({"user":"alex", "pass": "asdf"})
-    d = datetime.datetime.today() + datetime.timedelta(days=3)
-    # page = hoas.view_page(date=d).text
-    with open("dummy.html", "r") as f:
-        # f.write(page)
-        page = f.read()
-    soup = bs(page, "html.parser")
-
-        
-    print(hoasparser.get_users_reservations(soup))
-    create_config(hoas)
+    a = Hoas()
+    print(a.get_timetables())
+    
 if __name__ == "__main__":
-    config = load_config()
-    main(config)
+    #config = load_config()
+    main(config={})
