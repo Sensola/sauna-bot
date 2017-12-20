@@ -145,8 +145,7 @@ class Hoas:
                 sauna_set.add(sauna)
         msg = "Reservations:\n"
         for sauna in sorted(sauna_set):
-            msg += f"{sauna.start:%a %d.%m.%Y %H:%M} - {sauna.end:%H:%M}" \
-                   f"in {sauna.where} {sauna.info}\n"
+            msg += str(sauna) + "\n"
         return msg
 
     def reserve(self):

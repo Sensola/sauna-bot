@@ -8,7 +8,10 @@ from bs4 import BeautifulSoup as bs
 from collections import OrderedDict, namedtuple
 
 
-Reservation = namedtuple('Reservation', 'start end where info')
+class Reservation(namedtuple('Reservation', 'start end where info')):
+    def __str__(self):
+        return f"{self.start:%a %d.%m.%Y from %H:%M} to {self.end:%H:%M} " \
+                   f"in {self.where} {self.info}"
 
 
 def str_to_soup(f):
