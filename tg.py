@@ -37,13 +37,15 @@ class SensolaBot(telepot.aio.Bot):
 
     @staticmethod
     def register_keyboard(sauna_id):
-        return {"inline_keyboard": [[{"text": "yes",
-                                      "callback_data": sauna_id + "yes"}, ],
-                                    [{"text": "maybe",
-                                      "callback_data": sauna_id + "maybe"}, ],
-                                    [{"text": "no",
-                                      "callback_data": sauna_id + "no"}, ],
-                                    ]}
+        return {"inline_keyboard":
+                    [[{"text": "yes",
+                       "callback_data": sauna_id + "yes"}, ],
+                     [{"text": "maybe",
+                       "callback_data": sauna_id + "maybe"}, ],
+                     [{"text": "no",
+                       "callback_data": sauna_id + "no"}, ]
+                    ]
+        }
 
     @asyncio.coroutine
     def send_message(self, chat_id, content, reply_markup=None,
@@ -62,8 +64,7 @@ class SensolaBot(telepot.aio.Bot):
             logging.info(f"Received message: {msg['text']}")
             content_type, chat_type, chat_id = details
             cmd, *cmd_args = msg['text'].split(" ")
-            print(repr(cmd))
-            print(self.cmds[cmd])
+
             tuuba = loop.run_in_executor(None, self.cmds[cmd])
             asdf = asyncio.wait_for(tuuba, None)
             msg = yield from asdf
@@ -107,9 +108,11 @@ class SensolaBot(telepot.aio.Bot):
 
 hoas_api = hoas.Hoas()
 
-commands = Switch({"/show": SensolaBot.show,
-                   "/sauna": SensolaBot.sauna,
-                   "/test": SensolaBot.test, })
+commands = Switch(
+    {"/show": SensolaBot.show,
+     "/sauna": SensolaBot.sauna,
+     "/test": SensolaBot.test}
+)
 
 
 class BlockingSwitch(dict):
