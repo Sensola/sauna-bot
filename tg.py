@@ -48,14 +48,15 @@ class SensolaBot(telepot.aio.Bot):
             logging.info(f"Received message: {msg['text']}")
             content_type, chat_type, chat_id = details
             cmd, *cmd_args = msg['text'].split(" ")
-            func = self.cmds.get(cmd, None)
+            func = self.cmds[cmd]
             if not func:
                 return
-            tuuba = self._loop.run_in_executor(None, func, chat_id)
+            tuuba = self._loop.run_in_executor(None, func, chat_id, *cmd_args)
             asdf = asyncio.wait_for(tuuba, None)
             msg = yield from asdf
-            if msg:
-                yield from self.send_message(chat_id, msg)
+            if not msg:
+                msg = "202 no content"
+            yield from self.send_message(chat_id, msg)
 
             # yield from self.cmds[cmd](
             #    self, type=chat_type, id=chat_id, cmd=cmd, args=cmd_args)
