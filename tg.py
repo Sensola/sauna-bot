@@ -9,22 +9,6 @@ from telepot.aio.loop import MessageLoop
 from pprint import pprint
 from uuid import uuid4
 
-logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s",
-                    datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
-
-TOKEN = "380540735:AAFhwCOUrjnLF_9F7yhPP1iFme0Lh-ygI8k"
-
-
-class Switch(dict):
-    @staticmethod
-    @asyncio.coroutine
-    def default(*args, **kwargs):
-        print(args, kwargs, sep="\n")
-        yield
-
-    def __missing__(self, key):
-        return self.get("default") or self.default
-
 
 class SensolaBot(telepot.aio.Bot):
     def __init__(self, token, cmds):
@@ -48,11 +32,11 @@ class SensolaBot(telepot.aio.Bot):
         }
 
     @asyncio.coroutine
-    def send_message(self, chat_id, content, reply_markup=None,
+    def send_message(self, chat_id, content, reply_markup=None,  parse_mode="HTML",
                      disable_notification=True, disable_web_page_preview=True):
         logging.info(f"Sending message:{chat_id, content}")
         yield from self.sendMessage(
-            chat_id, content, parse_mode="HTML", reply_markup=reply_markup,
+            chat_id, content, parse_mode=parse_mode, reply_markup=reply_markup,
             disable_notification=disable_notification,
             disable_web_page_preview=disable_web_page_preview)
 
@@ -64,11 +48,14 @@ class SensolaBot(telepot.aio.Bot):
             logging.info(f"Received message: {msg['text']}")
             content_type, chat_type, chat_id = details
             cmd, *cmd_args = msg['text'].split(" ")
-
-            tuuba = loop.run_in_executor(None, self.cmds[cmd])
+            func = self.cmds.get(cmd, None)
+            if not func:
+                return
+            tuuba = self._loop.run_in_executor(None, func, chat_id)
             asdf = asyncio.wait_for(tuuba, None)
             msg = yield from asdf
-            yield from self.send_message(chat_id, msg)
+            if msg:
+                yield from self.send_message(chat_id, msg)
 
             # yield from self.cmds[cmd](
             #    self, type=chat_type, id=chat_id, cmd=cmd, args=cmd_args)
@@ -104,33 +91,3 @@ class SensolaBot(telepot.aio.Bot):
         saunas, common_saunas, laundry = hoas.find_users_reservations()  # TODO
         print("[send saunas to:]", chat_id)
         pprint(saunas)
-
-
-hoas_api = hoas.Hoas()
-
-commands = Switch(
-    {"/show": SensolaBot.show,
-     "/sauna": SensolaBot.sauna,
-     "/test": SensolaBot.test}
-)
-
-
-class BlockingSwitch(dict):
-    def __missing__(self, key):
-        print(self)
-        return (lambda *args, **kwargs: "Not correct command")
-
-
-commands = BlockingSwitch({'/tt': hoas_api.get_timetables,
-                           '/show': hoas_api.get_reservations})
-print(commands['/tt']())
-sensola_bot = SensolaBot(TOKEN, commands)
-
-loop = asyncio.get_event_loop()
-loop.set_debug(True)
-loop.create_task(MessageLoop(
-    sensola_bot, handle=sensola_bot.handle).run_forever())
-
-print("Listening ...")
-
-loop.run_forever()
