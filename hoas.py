@@ -28,8 +28,9 @@ class HoasInterface:
         self.cache = {}
         self.login_params = login_params
         self.session = requests.Session()
+        self.configs = []
         self._login()
-
+        
     def _login(self):
         """Create session for handling stuff"""
 
@@ -81,15 +82,7 @@ class HoasInterface:
         pass
 
 
-def create_config(hoas):
-    d = datetime.datetime.today() + datetime.timedelta(days=3)
-    with open("dummy.html", "r") as f:
-        page = f.read()
-    # page = hoas.view_page(date=d).text
 
-    soup = bs(page, "html.parser")
-    for i in (hoasparser.get_reservation_ids(soup)).items():
-        print(i)
 
 
 class Hoas:
@@ -103,6 +96,47 @@ class Hoas:
             print("Couldn't parse configs", file=sys.stderr)
             raise
 
+    def create_config(self):
+        # menu navs = asdf
+        for hoas in self.accounts:
+            # for stuff in
+            page = bs(hoas.view_page(0).text, "html.parser")
+            menus = hoasparser.parse_menu(page)
+            print(menus)
+            config = {}
+            for i, (service_type, view_id) in enumerate(menus):
+                config[service_type] = {}
+                page = bs(hoas.view_page(view_id).text, "html.parser")
+                view_ids = hoasparser.parse_view_ids(page)
+                view_ids[i] = view_ids[i][0], menus[i][1]
+                print(view_ids)
+                
+                print(service_type)
+                services_dict = {}
+                for name, view_id in view_ids:
+                    services_dict.setdefault(name, 
+                        {
+                            'reserve': {},
+                            'view':    view_id
+                        }
+                    )
+                    for i in range(15):
+                        d = datetime.datetime.today() + datetime.timedelta(days=i)
+                        page = hoas.view_page(view_id, date=d).text
+
+                        soup = bs(page, "html.parser")
+                        services_dict[name]['reserve'].update(
+                            filter(
+                                (lambda x: x[1]),
+                                hoasparser.get_reservation_ids(soup).items()
+                        ))
+                        print(services_dict)
+                        if len(services_dict[name]['reserve']) and all(services_dict[name]['reserve'].values()):
+                            break
+                    config.setdefault(service_type, {})
+                    config[service_type] = services_dict
+                    
+        return config
     def load_config(self):
         config = None
         try:
@@ -112,7 +146,6 @@ class Hoas:
             # Todo: Use logger
             print("Couldn't load configs", file=sys.stderr)
             raise
-        print(config)
         return config
 
     def get_timetables(self, service: int=None,

@@ -116,26 +116,55 @@ def parse_users_reservations(r):
 
 
 def get_reservation_ids(soup):
-
     topics, cal, reservations_left = parse_calendar(soup)
     fin = OrderedDict(
-            itertools.islice(zip(topics, itertools.repeat(None)), 1, None))
-
+        itertools.islice(
+            zip(
+                topics, 
+                itertools.repeat(OrderedDict())
+            ),
+            1,
+            None
+        )
+    )
+    url_regexp = re.compile("https://booking.hoas.fi/varaus/service/reserve/(?P<id>[0-9]*)/.*")
     if not cal:
         return fin
     # First row is (sub)services' names and second is remaining reservations
     for time, *items in cal:
         # Skip times
-        for name, (status, item) in \
-                itertools.islice(zip(topics, items), 1, None):
-
-            if status == 1:
+        for name, stuff in zip(itertools.islice(topics, 1, None), items):
+            if stuff[0] == 1:
                 continue
-            print(item.get("href"))
-            fin[i] = item.get("href")
+            if not fin[name]:
+                url = stuff[1].get("href")
+                match = url_regexp.match(url)
+                if match:
+                    id = match.group("id")
+                    fin[name] = id
     return fin
 
 
+def parse_view_ids(soup):
+    fin = []
+    print(type(soup))
+    service_nav = soup.find(class_='service-nav')
+    fin.append((service_nav.span.text, None))
+    # TODO: do not guess
+    for a in service_nav.find_all('a'):
+        # Take last part of url
+        fin.append((a.text, a["href"].rsplit("/", 1)[-1]))
+    return fin
+
+def parse_menu(soup):
+    fin = []
+    print(type(soup))
+    menu = soup.find(class_='menu')
+    for a in menu.find_all("a"):
+        view_id = a["href"].rsplit("/",1)[-1]
+        if view_id.isnumeric():
+            fin.append((a["class"][0], view_id))
+    return fin
 def parse_calendar(soup):
     # TODO: Check that this works also with laundries
     calendar = soup.find(class_='calendar').find_all("tr")
@@ -149,8 +178,6 @@ def parse_calendar(soup):
         # There is no data for this day
         reservations_left = ""
 
-    print(topics)
-    print(reservations_left)
     for row in cal:
         # print(row)
         data = {}

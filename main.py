@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from functools import partial, wraps
 from utils import Commands
 import asyncio
-
+from pprint import pprint 
 
 class SaunaBotCommands(Commands):
     @wraps(Commands.help)
@@ -24,7 +24,6 @@ class SaunaBotCommands(Commands):
         """Return todays saunas"""
         return hoas_api.get_reservations()
 
-
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s",
                         datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
@@ -33,11 +32,12 @@ if __name__ == "__main__":
     loop.set_debug(True)
 
     hoas_api = hoas.Hoas()
-
+    pprint (hoas_api.create_config())
     Token = "380540735:AAFhwCOUrjnLF_9F7yhPP1iFme0Lh-ygI8k"
 
     commands = SaunaBotCommands("/")
-
+    
+    quit()
     bot = tg.SensolaBot(Token, commands )
     task = loop.create_task(MessageLoop(
         bot, handle=bot.handle).run_forever())
