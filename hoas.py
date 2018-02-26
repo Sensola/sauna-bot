@@ -87,10 +87,10 @@ class HoasInterface:
 
 class Hoas:
     def __init__(self, config={}):
-        self.config = config or self.load_config()
+        self.config = config
         try:
             self.accounts = [HoasInterface(account)
-                             for account in self.config["accounts"]]
+                             for account in self.config]
         except Exception:
             # Todo: Use logger
             print("Couldn't parse configs", file=sys.stderr)
@@ -137,16 +137,6 @@ class Hoas:
                     config.setdefault(service_type, {})
                     config[service_type] = services_dict
                     
-        return config
-    def load_config(self):
-        config = None
-        try:
-            with open("config.yaml") as conf:
-                config = yaml.load(conf)
-        except Exception:
-            # Todo: Use logger
-            print("Couldn't load configs", file=sys.stderr)
-            raise
         return config
 
     def get_timetables(self, service: int=None,
