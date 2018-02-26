@@ -2,14 +2,19 @@ import tg
 import hoas
 import logging
 import sqlite3
+from os import path
 from collections import defaultdict
 from telepot.aio.loop import MessageLoop
+import yaml
 
 from datetime import datetime, timedelta
 from functools import partial, wraps
 from utils import Commands
 import asyncio
 from pprint import pprint 
+
+import argparse
+
 
 class SaunaBotCommands(Commands):
     @wraps(Commands.help)
@@ -27,17 +32,29 @@ class SaunaBotCommands(Commands):
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s",
                         datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
-
-    loop = asyncio.get_event_loop()
-    loop.set_debug(True)
+                        
+    parser = argparse.ArgumentParser(description="Telegram bot for reserving saunas and stuff")
+    parser.add_argument("--create-config", action="store_true", 
+        help="Find view and reservation ids from hoas site. Makes multiple requests to site")
+    
+    args = parser.parse_args()
 
     hoas_api = hoas.Hoas()
-    pprint (hoas_api.create_config())
+    if args.create_config or not path.exists("sauna_configs.yaml"):
+        sauna_configs = hoas_api.create_config()
+        with open("sauna_configs.yaml", "w") as f:
+            yaml.dump(sauna_configs, f, default_flow_style=False)
+        raise SystemExit("Configs created")
+    else:
+        with open("sauna_configs.yaml", "r") as f:
+            sauna_configs = yaml.load(f)
+    
+    loop = asyncio.get_event_loop()
+    loop.set_debug(True)
+    
     Token = "380540735:AAFhwCOUrjnLF_9F7yhPP1iFme0Lh-ygI8k"
 
     commands = SaunaBotCommands("/")
-    
-    quit()
     bot = tg.SensolaBot(Token, commands )
     task = loop.create_task(MessageLoop(
         bot, handle=bot.handle).run_forever())

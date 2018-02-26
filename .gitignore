@@ -107,3 +107,4 @@ ENV/
 # PyCharm
 .idea/
 dummy.html 
+sauna_configs.yaml 
