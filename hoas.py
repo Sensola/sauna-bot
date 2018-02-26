@@ -49,7 +49,7 @@ class HoasInterface:
             date = f"{datetime.datetime.today():%d/%m/%y}"
 
         if service is None:
-            service = 363
+            service = 0
 
         cache_key = frozenset((service, date))
         new_request_time = time.time() - cache_time
@@ -107,10 +107,11 @@ class Hoas:
             for i, (service_type, view_id) in enumerate(menus):
                 config[service_type] = {}
                 page = bs(hoas.view_page(view_id).text, "html.parser")
-                view_ids = hoasparser.parse_view_ids(page)
-                view_ids[i] = view_ids[i][0], menus[i][1]
-                print(view_ids)
                 
+                view_ids = hoasparser.parse_view_ids(page)
+                # The first viewed sites id is found in menus, but not on page
+                view_ids[0] = view_ids[0][0], menus[i][1]
+                print(view_ids, menus)
                 print(service_type)
                 services_dict = {}
                 for name, view_id in view_ids:
