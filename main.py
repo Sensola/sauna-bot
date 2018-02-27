@@ -26,8 +26,10 @@ class SaunaBotCommands(Commands):
         return hoas_api.get_timetables()
 
     def show(self, *args, **kwargs):
-        """Return todays saunas"""
+        """Return reserved saunas"""
         return hoas_api.get_reservations()
+
+
 def load_config():        
     config = {}
     try:
