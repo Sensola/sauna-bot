@@ -1,6 +1,6 @@
 import datetime
-from functools import partial
-
+from functools import partial, singledispatch
+from contextlib import suppress
 
 class Commands:
     """
@@ -80,33 +80,45 @@ def print_raw(text, width=50):
         print(i)
         print("-" * width)
 
-
+@singledispatch
 def next_weekday(weekday, weeks=0, from_=None):
+    raise TypeError(f"Weekday must be string or int, was {weekday:!r}")
+
+
+@next_weekday.register(int)
+def _(weekday, weeks=0, from_=None):
     """
        >> next_weekday(6, week
     """
-    if isinstance(weekday, str):
-        days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
-        weekday = weekday.lower()
-        if weekday not in days:
-            days = ["ma", "ti", "ke", "to", "pe", "la", "su"]
-
-        if weekday in days:
-            weekday = days.index(weekday)
-        else:
-            raise ValueError("Must be string in [mon/ma, tue/ti,...], or int")
-    elif not isinstance(weekday, int):
-        raise ValueError("Must be string in [mon/ma, tue/ti,...], or int")
-
     now = from_ or datetime.datetime.now()
     diff = weekday - now.weekday()
     if diff < 0:
         diff = diff + 7
     diff = diff + (weeks) * 7
-    print(diff)
     return now + datetime.timedelta(days=int(diff))
 
+
+@next_weekday.register(str)
+def _(weekday, weeks=0, from_=None):
+    if weekday.isdigit():
+        return next_weekday(int(weekday), weeks, from_)
+        
+    weekday = weekday.lower()
+    
+    ind = None
+    days_en = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    days_fi = ["ma", "ti", "ke", "to", "pe", "la", "su"]
+    #  Check if found in known day abbreviations
+    for check in (days_en, days_fi):
+        with suppress(ValueError):
+            ind = check.index(weekday)
+            break
+    
+    if ind is None:
+        raise ValueError("Weekday must be 3 letter english or 2 letter finnish abbrevation")
+    return next_weekday(ind, weeks, from_)
 
 if __name__ == "__main__":
     print(datetime.datetime.today().weekday())
     print(f"{next_weekday('thu',1).strftime('%a %d.%m')}")
+    print(f"{next_weekday('2',0).strftime('%a %d.%m')}")
