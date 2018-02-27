@@ -144,7 +144,7 @@ class Hoas:
 
         state = ("Vapaa", "Varattu", "Varaus")
         for account in self.accounts:
-            page = account.view_page(date=date).text
+            page = account.view_page(service=service, date=date).text
             soup = bs(page, "html.parser")
             topics, cal, left = hoasparser.parse_calendar(soup)
             width = max(*map(len, topics), *map(len, state))
