@@ -1,16 +1,18 @@
 import datetime
 from functools import partial
+
+
 class Commands:
     """
     Class for creating command interfaces.
     Used by subclassing Commands and defining functions.
     >> commands = Commands()
     >> commands["help"] is commands.help
-    defines function help(cmd="") which returns docstring for function 'cmd' if given or
-    helptext that lists defined functions
+    defines function help(cmd="") which returns docstring for function 'cmd'
+    if given or helptext that lists defined functions
     """
 
-    def __init__(self, predicate =""):
+    def __init__(self, predicate=""):
         assert isinstance(predicate, str)
         self.predicate = predicate
 
@@ -30,7 +32,8 @@ class Commands:
         return partial(self.help, fail="No such command")
 
     def help(self, cmd="", *, fail=""):
-        """Return help on command if command is given, or else, return all commands"""
+        """Return help on command,
+        if no command given, return all commands"""
         class_dict = dict(type(self).__dict__)
         # Add this function to class, so that when subclassing,
         # help for help is found
@@ -44,17 +47,18 @@ class Commands:
             item = class_dict[cmd]
             if callable(item):
                 if item.__doc__:
-                    return "Help on command '{}':\n {}".format(cmd, " \n".join(item.__doc__.split("\n")))
+                    return "Help on command '{}':\n {}".format(
+                        cmd, " \n".join(item.__doc__.split("\n")))
                 return "No help on command '{}'".format(cmd)
         # If no cmd given or wrong cmd given, return commands
         commands = []
         for key, value in class_dict.items():
             if not key.startswith("_"):
                 if callable(value):
-                  commands.append(key)
+                    commands.append(key)
         msg = ("Commands:\n {}".format(", ".join(commands)) +
-                "\n for more help on command, use " +
-                "{}help command".format(self.predicate))
+               "\n for more help on command, use " +
+               "{}help command".format(self.predicate))
         if fail:
             msg = fail + "\n" + msg
         return msg
@@ -69,19 +73,40 @@ def print_raw(text, width=50):
         pad = 5
         uppers += a.rjust(pad)
         lowers += b.rjust(pad)
-    zipped_chunks = ((uppers[i:i + width], lowers[i:i + width]) for i in range(0, len(uppers), width))
+    zipped_chunks = ((uppers[i:i + width], lowers[i:i + width])
+                     for i in range(0, len(uppers), width))
     for t, i in zipped_chunks:
         print(t)
         print(i)
         print("-" * width)
-def next_weekday(weekday, week=0, from_ = None):
+
+
+def next_weekday(weekday, weeks=0, from_=None):
     """
-       next_weekday(6, week
+       >> next_weekday(6, week
     """
-    now = datetime.datetime.now()
-    diff = weekday - d.weekday()
+    if isinstance(weekday, str):
+        days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+        weekday = weekday.lower()
+        if weekday not in days:
+            days = ["ma", "ti", "ke", "to", "pe", "la", "su"]
+
+        if weekday in days:
+            weekday = days.index(weekday)
+        else:
+            raise ValueError("Must be string in [mon/ma, tue/ti,...], or int")
+    elif not isinstance(weekday, int):
+        raise ValueError("Must be string in [mon/ma, tue/ti,...], or int")
+
+    now = from_ or datetime.datetime.now()
+    diff = weekday - now.weekday()
     if diff < 0:
-        diff = diff +7
-    return  now + datetime.timedelta(days=days_ahead)
+        diff = diff + 7
+    diff = diff + (weeks) * 7
+    print(diff)
+    return now + datetime.timedelta(days=int(diff))
+
+
 if __name__ == "__main__":
-    print_raw("asd\n\n\u1234saddsadsaddas \u0000ssafaasfasfsa fsa \n\n asdasd dad ss ääåäåölåplq")
+    print(datetime.datetime.today().weekday())
+    print(f"{next_weekday('thu',1).strftime('%a %d.%m')}")
