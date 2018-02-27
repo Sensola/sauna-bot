@@ -9,10 +9,10 @@ import yaml
 
 from datetime import datetime, timedelta
 from functools import partial, wraps
-from utils import Commands
+from utils import Commands, next_weekday
 import asyncio
 from pprint import pprint 
-
+from contextlib import suppress
 import argparse
 
 
@@ -21,9 +21,23 @@ class SaunaBotCommands(Commands):
     def help(self, msg_id, cmd="", *, fail=""):
         return super().help(cmd, fail=fail)
 
-    def tt(self, *args, **kwargs):
-        """Return todays timetable"""
-        return hoas_api.get_timetables()
+    def tt(self, msg_id, weekday=0, sauna="", *args, **kwargs):
+        """Return timetable for a :day: :sauna
+day is either in ('mon', 'tue' ...) or ('ma', 'ti' ...)
+or weekdays number. 
+Sauna is M, H OR E"""
+
+        sauna_id = {"e": 362,
+                    "h": 363,
+                    "m": 364}.get(sauna.lower(), 363)
+        date = None
+        with suppress(ImportError):  # ValueError, TypeError):
+            date = next_weekday(weekday)
+            return '\n'.join((date.strftime("%a %d.%m"), 
+                         hoas_api.get_timetables(service=sauna_id, date=date)))
+        return ("Didnt understand weekday \n " +
+                "Heres todays timetable\n" +
+                hoas_api.get_timetables())
 
     def show(self, *args, **kwargs):
         """Return reserved saunas"""
