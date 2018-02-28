@@ -193,11 +193,9 @@ def parse_calendar(soup):
                 info = data.a.attrs
                 # ´free
                 status = 0
-                if False:
-                    # TODO: handle users reserved
+                if data.a.get("class") == ['myReservation']:
                     status = 2
-                    pass
             this_row.append((status, info))
         final_cal.append(this_row)
-
+    print(final_cal)
     return topics, final_cal, reservations_left
