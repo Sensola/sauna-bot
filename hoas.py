@@ -142,7 +142,7 @@ class Hoas:
     def get_timetables(self, service: int=None,
                        date: datetime=None, cache_time=10):
 
-        state = ("Vapaa", "Varattu", "Varaus")
+        state = ("Vapaa", "Varattu", "Oma varaus")
         for account in self.accounts:
             page = account.view_page(service=service, date=date).text
             soup = bs(page, "html.parser")
