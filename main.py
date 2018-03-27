@@ -1,19 +1,17 @@
-import tg
-import hoas
 import logging
 import sqlite3
+import asyncio
+import argparse
+from contextlib import suppress
 from os import path
-from collections import defaultdict
+from functools import wraps
+
 from telepot.aio.loop import MessageLoop
 import yaml
 
-from datetime import datetime, timedelta
-from functools import partial, wraps
+import tg
+import hoas
 from utils import Commands, next_weekday
-import asyncio
-from pprint import pprint 
-from contextlib import suppress
-import argparse
 
 
 class SaunaBotCommands(Commands):
@@ -35,8 +33,8 @@ Sauna is M, H OR E"""
             date = next_weekday(weekday)
             return '\n'.join((date.strftime("%a %d.%m"), 
                          hoas_api.get_timetables(service=sauna_id, date=date)))
-        return ("Didnt understand weekday \n " +
-                "Heres todays timetable\n" +
+        return ("Didn't understand weekday \n " +
+                "Here's the timetable for today\n" +
                 hoas_api.get_timetables())
 
     def show(self, *args, **kwargs):
@@ -57,15 +55,20 @@ if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s",
                         datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
                         
-    parser = argparse.ArgumentParser(description="Telegram bot for reserving saunas and stuff")
-    parser.add_argument("--create-config", action="store_true", 
-        help="Find view and reservation ids from hoas site. Makes multiple requests to site")
+    parser = argparse.ArgumentParser(
+        description="Telegram bot for reserving saunas and stuff")
+    parser.add_argument("--create-config", action="store_true",
+                        help="Find view and reservation ids from hoas site. "
+                             "Makes multiple requests to site")
     
     args = parser.parse_args()
     config = load_config()
-    if not config or config.get("token") is None or config.get('accounts') is None:
-        raise SystemExit("You should have 'config.yaml' file to give hoas account(s)\n"
-                         "and telegram bot token. See config.example.yaml")
+    if not config \
+            or config.get("token") is None \
+            or config.get('accounts') is None:
+        raise SystemExit("You should have 'config.yaml' file to give hoas "
+                         "account(s)\nand telegram bot token. "
+                         "See config.example.yaml")
         
     hoas_api = hoas.Hoas(config['accounts'])
     if args.create_config or not path.exists("sauna_configs.yaml"):
@@ -83,7 +86,7 @@ if __name__ == "__main__":
     token = config["token"]
 
     commands = SaunaBotCommands("/")
-    bot = tg.SensolaBot(token, commands )
+    bot = tg.SensolaBot(token, commands)
     task = loop.create_task(MessageLoop(
         bot, handle=bot.handle).run_forever())
     print("Listening ...")    

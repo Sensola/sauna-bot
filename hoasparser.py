@@ -1,10 +1,7 @@
 import re
-from functools import wraps
 import itertools
-from utils import print_raw as pr
 import datetime
 
-from bs4 import BeautifulSoup as bs
 from collections import OrderedDict, namedtuple
 
 
@@ -12,15 +9,6 @@ class Reservation(namedtuple('Reservation', 'start end where info')):
     def __str__(self):
         return f"{self.start:%a %d.%m.%Y from %H:%M} to {self.end:%H:%M} " \
                    f"in {self.where} {self.info}"
-
-
-def str_to_soup(f):
-    @wraps(f)
-    def decorated(arg):
-        if isinstance(arg, str):
-            arg = bs(arg)
-        return f(arg)
-    return decorated
 
 
 def get_users_reservations(soup) -> (list, list, list):
@@ -156,6 +144,7 @@ def parse_view_ids(soup):
         fin.append((a.text, a["href"].rsplit("/", 1)[-1]))
     return fin
 
+
 def parse_menu(soup):
     fin = []
     print(type(soup))
@@ -165,6 +154,8 @@ def parse_menu(soup):
         if view_id.isnumeric():
             fin.append((a["class"][0], view_id))
     return fin
+
+
 def parse_calendar(soup):
     # TODO: Check that this works also with laundries
     calendar = soup.find(class_='calendar').find_all("tr")

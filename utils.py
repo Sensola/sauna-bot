@@ -2,6 +2,7 @@ import datetime
 from functools import partial, singledispatch
 from contextlib import suppress
 
+
 class Commands:
     """
     Class for creating command interfaces.
@@ -80,6 +81,7 @@ def print_raw(text, width=50):
         print(i)
         print("-" * width)
 
+
 @singledispatch
 def next_weekday(weekday, weeks=0, from_=None):
     raise TypeError(f"Weekday must be string or int, was {weekday:!r}")
@@ -94,7 +96,7 @@ def _(weekday, weeks=0, from_=None):
     diff = weekday - now.weekday()
     if diff < 0:
         diff = diff + 7
-    diff = diff + (weeks) * 7
+    diff = diff + weeks * 7
     return now + datetime.timedelta(days=int(diff))
 
 
@@ -115,7 +117,8 @@ def _(weekday, weeks=0, from_=None):
             break
     
     if ind is None:
-        raise ValueError("Weekday must be 3 letter english or 2 letter finnish abbrevation")
+        raise ValueError("Weekday must be 3 letter english or 2 letter "
+                         "finnish abbrevation")
     return next_weekday(ind, weeks, from_)
 
 if __name__ == "__main__":

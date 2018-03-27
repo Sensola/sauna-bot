@@ -1,3 +1,0 @@
-PyYAML
-bs4
-requests

@@ -1,20 +1,11 @@
-import re
-import json
 import time
 import sys
-
 import datetime
 
-from enum import Enum
-
+import requests
 from bs4 import BeautifulSoup as bs
 
-import getpass
-import yaml
-import requests
-
 import hoasparser
-from utils import print_raw as pr
 
 
 class AuthException(Exception):
@@ -82,9 +73,6 @@ class HoasInterface:
         pass
 
 
-
-
-
 class Hoas:
     def __init__(self, config={}):
         self.config = config
@@ -98,12 +86,12 @@ class Hoas:
 
     def create_config(self):
         # menu navs = asdf
+        config = {}
         for hoas in self.accounts:
             # for stuff in
             page = bs(hoas.view_page(0).text, "html.parser")
             menus = hoasparser.parse_menu(page)
             print(menus)
-            config = {}
             for i, (service_type, view_id) in enumerate(menus):
                 config[service_type] = {}
                 page = bs(hoas.view_page(view_id).text, "html.parser")
@@ -115,7 +103,8 @@ class Hoas:
                 print(service_type)
                 services_dict = {}
                 for name, view_id in view_ids:
-                    services_dict.setdefault(name, 
+                    services_dict.setdefault(
+                        name,
                         {
                             'reserve': {},
                             'view':    view_id
@@ -132,7 +121,8 @@ class Hoas:
                                 hoasparser.get_reservation_ids(soup).items()
                         ))
                         print(services_dict)
-                        if len(services_dict[name]['reserve']) and all(services_dict[name]['reserve'].values()):
+                        if len(services_dict[name]['reserve']) and \
+                                all(services_dict[name]['reserve'].values()):
                             break
                     config.setdefault(service_type, {})
                     config[service_type] = services_dict
@@ -174,13 +164,3 @@ class Hoas:
 
     def reserve(self):
         return NotImplemented
-
-
-def main(config):
-    a = Hoas()
-    print(a.get_reservations())
-
-
-if __name__ == "__main__":
-    # config = load_config()
-    main(config={})
