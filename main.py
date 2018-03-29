@@ -20,16 +20,16 @@ class SaunaBotCommands(Commands):
         return super().help(cmd, fail=fail)
 
     def tt(self, msg_id, weekday=0, sauna="", *args, **kwargs):
-        """Return timetable for a :day: :sauna
-day is either in ('mon', 'tue' ...) or ('ma', 'ti' ...)
-or weekdays number. 
-Sauna is M, H OR E"""
+        """Return timetable for a :day: :sauna:
+           day is either one of ('mon', 'tue' ...) or one of ('ma', 'ti' ...)
+           or weekdays number.
+           Sauna is one of ('M', 'H', 'E')"""
 
         sauna_id = {"e": 362,
                     "h": 363,
                     "m": 364}.get(sauna.lower(), 363)
         date = None
-        with suppress(ImportError):  # ValueError, TypeError):
+        with suppress(ValueError, TypeError):
             date = next_weekday(weekday)
             return '\n'.join((date.strftime("%a %d.%m"), 
                          hoas_api.get_timetables(service=sauna_id, date=date)))
@@ -42,7 +42,7 @@ Sauna is M, H OR E"""
         return hoas_api.get_reservations()
 
 
-def load_config():        
+def load_config():
     config = {}
     try:
         with open("config.yaml") as conf:

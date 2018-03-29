@@ -1,7 +1,7 @@
 import datetime
 from functools import partial, singledispatch
 from contextlib import suppress
-
+from inspect import cleandoc
 
 class Commands:
     """
@@ -48,8 +48,8 @@ class Commands:
             item = class_dict[cmd]
             if callable(item):
                 if item.__doc__:
-                    return "Help on command '{}':\n {}".format(
-                        cmd, " \n".join(item.__doc__.split("\n")))
+                    return "Help on command '{}':\n.   {}".format(
+                        cmd, "\n.    ".join(cleandoc(item.__doc__).split("\n")))
                 return "No help on command '{}'".format(cmd)
         # If no cmd given or wrong cmd given, return commands
         commands = []
