@@ -20,8 +20,9 @@ class DBHelper:
         self.conn.execute(stmt, args)
         self.conn.commit()
 
-    def __setitem__(self, key, value):
+    def update(self, user, key, value):
         pass
+        # stmt = "UPDATE configs SET (?) = (?) WHERE"
 
     def __getitem__(self, user):
         stmt = "SELECT * FROM configs WHERE user = (?)"
