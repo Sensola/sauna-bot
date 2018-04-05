@@ -11,15 +11,21 @@ import yaml
 
 import tg
 import hoas
+import userconfigs
+from dbhelper import DBHelper
 from utils import Commands, next_weekday
 
 
 class SaunaBotCommands(Commands):
     @wraps(Commands.help)
-    def help(self, msg_id, cmd="", *, fail=""):
+    def help(self, chat_id, cmd="", *, fail=""):
         return super().help(cmd, fail=fail)
 
-    def tt(self, msg_id, weekday=0, sauna="", *args, **kwargs):
+    def start(self, chat_id, *args, **kwargs):
+        userconfigs.UserConfigs().add_user(chat_id)
+        return "Started"
+
+    def tt(self, chat_id, weekday=0, sauna="", *args, **kwargs):
         """Return timetable for a :day: :sauna
 day is either in ('mon', 'tue' ...) or ('ma', 'ti' ...)
 or weekdays number. 
@@ -40,6 +46,10 @@ Sauna is M, H OR E"""
     def show(self, *args, **kwargs):
         """Return reserved saunas"""
         return hoas_api.get_reservations()
+
+    def config(self, chat_id, *args, **kwargs):
+        """Something something user configs"""
+        return user_config_handler(chat_id, args)
 
 
 def load_config():        
@@ -71,6 +81,9 @@ if __name__ == "__main__":
                          "See config.example.yaml")
         
     hoas_api = hoas.Hoas(config['accounts'])
+    user_config_handler = userconfigs.UserConfigs().handle
+    db = DBHelper()
+    db.setup()
     if args.create_config or not path.exists("sauna_configs.yaml"):
         sauna_configs = hoas_api.create_config()
         with open("sauna_configs.yaml", "w") as f:
