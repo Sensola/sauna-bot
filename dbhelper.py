@@ -5,7 +5,7 @@ class DBHelper:
     def __init__(self, dbname="configs.db"):
         self.dbname = dbname
         self.conn = sqlite3.connect(dbname)
-        self.columns = ("user", "lang", "onreserve", "notify")
+        self.columns = ["user", "lang", "onreserve", "notify"]
 
     def setup(self):
         stmt = "CREATE TABLE IF NOT EXISTS configs "\
@@ -20,12 +20,29 @@ class DBHelper:
         self.conn.execute(stmt, args)
         self.conn.commit()
 
-    def update(self, user, key, value):
-        pass
-        # stmt = "UPDATE configs SET (?) = (?) WHERE"
+    def update_item(self, user, key, value):
+        stmt = "UPDATE configs SET (?) = (?) WHERE user = (?)"
+        args = (key, value, user)
+        self.conn.execute(stmt, args)
+        self.conn.commit()
 
     def __getitem__(self, user):
         stmt = "SELECT * FROM configs WHERE user = (?)"
         args = (user, )
         row = self.conn.execute(stmt, args).fetchone()
-        return row[1:]
+        rowdict = dict(zip(self.columns, row))
+        del rowdict["user"]
+        return DBRow(user, rowdict, self)
+
+
+class DBRow:
+    def __init__(self, user, data, db):
+        self.user = user
+        self.data = data
+        self.db = db
+
+    def __getitem__(self, item):
+        return self.data[item]
+
+    def __setitem__(self, key, value):
+        self.db.update_item(self.user, key, value)
