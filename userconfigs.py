@@ -8,7 +8,7 @@ class UserConfigs:
         self.valid_conf_values = {
             "lang": "fi|en",
             "onreserve": "true|false",
-            "notify": "^(?:\d|[01]\d|2[0-3]):[0-5]\d$"
+            "notify": "^(?:\d|[01]\d|2[0-3]):[0-5]\d|off$"
         }
 
     def __getitem__(self, chat_id):
