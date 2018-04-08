@@ -17,8 +17,12 @@ class DBHelper:
         stmt = "INSERT INTO configs (user, lang, onreserve, notify) VALUES " \
                "(?, ?, ?, ?)"
         args = (chat_id, "en", "false", "false")  # Default configs for new user
-        self.conn.execute(stmt, args)
-        self.conn.commit()
+        try:
+            self.conn.execute(stmt, args)
+            self.conn.commit()
+            return "New user added"
+        except:
+            return "Database error"
 
     def update_item(self, user, key, value):
         stmt = "UPDATE configs SET (?) = (?) WHERE user = (?)"

@@ -12,7 +12,7 @@ class Reservation(namedtuple('Reservation', 'start end where info')):
 
 
 def get_users_reservations(soup) -> (list, list, list):
-    """Find users reservations from Beautifull soup object"""
+    """Find users reservations from Beautiful soup object"""
     res = soup.find(class_='myReservations').find_all("a")
     common_saunas = []
     saunas = []

@@ -9,23 +9,16 @@ class UserConfigs:
 
     def handle(self, chat_id, configs):
         if configs == ():  # Just /config returns your configs.
-            uconfigs = self.send_configs(chat_id)
-            msg = f"Your current configs: \n{uconfigs}"
-            return msg
+            return self.send_configs(chat_id)
         conf_dict = {}
         for conf in configs:  # We should check both the format and that the keys and values are valid
-            check = re.compile("(?P<key>\w*)=(?P<value>\w*)")  # Check if the format is right (key1=value1 key2=value2).
-            match = check.match(conf)
-            if not match:  # Return error for invalid syntax
-                msg = f"Invalid config syntax. \n{configs}"
-                return msg
-            conf_key = match.group("key")  # The syntax is right, add to dict.
-            conf_value = match.group("value")
-            conf_dict[conf_key] = conf_value
+            try:
+                conf_key, conf_value = self.check_conf(conf)
+                conf_dict[conf_key] = conf_value
+            except:
+                return f"Invalid config syntax. \n{configs}"
         # All configs passed the syntax test and are in a dict.
-        self.update(chat_id, conf_dict)
-        msg = f"Received configs: {conf_dict} raw={configs}"
-        return msg
+        return self.update(chat_id, conf_dict)
 
     def __getitem__(self, chat_id):
         row = self.db[chat_id]
@@ -34,10 +27,23 @@ class UserConfigs:
     def update(self, user, conf_dict):
         for key in conf_dict:
             value = conf_dict[key]
-            self.db.update_item(user, key, value)
+            try:
+                self.db.update_item(user, key, value)
+            except:
+                return "Database error"
+        return f"Configs updated: \n{conf_dict}"
 
     def add_user(self, chat_id):
-        self.db.add_user(chat_id)
+        return self.db.add_user(chat_id)
+
+    def check_conf(self, conf):
+        check = re.compile("(?P<key>\w*)=(?P<value>\w*)")  # Check if the format is right (key1=value1 key2=value2).
+        match = check.match(conf)
+        if not match:  # Return error for invalid syntax
+            return None
+        conf_key = match.group("key")  # The syntax is right, add to dict.
+        conf_value = match.group("value")
+        return conf_key, conf_value
 
     def send_configs(self, chat_id):
         configs = UserConfigs()[chat_id].data
@@ -46,4 +52,4 @@ class UserConfigs:
         for key in configs:
             value = configs[key]
             uconfigs += f"{key}={value}\n"
-        return uconfigs
+        return f"Your current configs: \n{uconfigs}"

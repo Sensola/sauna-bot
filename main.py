@@ -1,5 +1,4 @@
 import logging
-import sqlite3
 import asyncio
 import argparse
 from contextlib import suppress
@@ -22,8 +21,7 @@ class SaunaBotCommands(Commands):
         return super().help(cmd, fail=fail)
 
     def start(self, chat_id, *args, **kwargs):
-        userconfigs.UserConfigs().add_user(chat_id)
-        return "Started"
+        return userconfigs.UserConfigs().add_user(chat_id)
 
     def tt(self, chat_id, weekday=0, sauna="", *args, **kwargs):
         """Return timetable for a :day: :sauna
@@ -60,7 +58,8 @@ def load_config():
     except Exception as e:
         print("Could not read 'config.yaml'")
     return config
-    
+
+
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s",
                         datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
