@@ -25,8 +25,8 @@ class DBHelper:
             return "User already in database"
 
     def update_item(self, user, key, value):
-        stmt = "UPDATE configs SET (?) = (?) WHERE user = (?)"
-        args = (key, value, user)
+        stmt = "UPDATE configs SET %s = (?) WHERE user = (?)" % key
+        args = (value, user)
         self.conn.execute(stmt, args)
         self.conn.commit()
 
