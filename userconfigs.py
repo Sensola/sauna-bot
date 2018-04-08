@@ -15,8 +15,8 @@ class UserConfigs:
             try:
                 conf_key, conf_value = self.check_conf(conf)
                 conf_dict[conf_key] = conf_value
-            except:
-                return f"Invalid config syntax. \n{configs}"
+            except Exception as e:
+                return f"ERROR:\n{e}"
         # All configs passed the syntax test and are in a dict.
         return self.update(chat_id, conf_dict)
 
@@ -29,8 +29,8 @@ class UserConfigs:
             value = conf_dict[key]
             try:
                 self.db.update_item(user, key, value)
-            except:
-                return "Database error"
+            except Exception as e:
+                return f"DATABASE ERROR:\n{e}"
         return f"Configs updated: \n{conf_dict}"
 
     def add_user(self, chat_id):

@@ -21,8 +21,8 @@ class DBHelper:
             self.conn.execute(stmt, args)
             self.conn.commit()
             return "New user added"
-        except:
-            return "Database error"
+        except Exception as e:
+            return "User already in database"
 
     def update_item(self, user, key, value):
         stmt = "UPDATE configs SET (?) = (?) WHERE user = (?)"
