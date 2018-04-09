@@ -1,6 +1,5 @@
 import datetime
-from functools import partial, singledispatch
-from contextlib import suppress
+from functools import partial
 
 
 class Commands:
@@ -91,58 +90,16 @@ def get_date(day):
     current_weekday = today.weekday()
     if day in weekdays["en"]:
         weekday = weekdays["en"].index(day)
+        day = weekday - current_weekday
         if weekday < current_weekday:
-            day = weekdays["en"].index(day) + (7 - current_weekday)
-        else:
-            day = weekdays["en"].index(day) - current_weekday
+            day += 7
     if day in weekdays["fi"]:
         weekday = weekdays["fi"].index(day)
+        day = weekday - current_weekday
         if weekday < current_weekday:
-            day = weekdays["fi"].index(day) + (7 - current_weekday)
-        else:
-            day = weekdays["fi"].index(day) - current_weekday
+            day += 7
     date = today + datetime.timedelta(days=day)
     return date
-
-
-@singledispatch
-def next_weekday(weekday, weeks=0, from_=None):
-    raise TypeError(f"Weekday must be string or int, was {weekday:!r}")
-
-
-@next_weekday.register(int)
-def _(weekday, weeks=0, from_=None):
-    """
-       >> next_weekday(6, week
-    """
-    now = from_ or datetime.datetime.now()
-    diff = weekday - now.weekday()
-    if diff < 0:
-        diff = diff + 7
-    diff = diff + weeks * 7
-    return now + datetime.timedelta(days=int(diff))
-
-
-@next_weekday.register(str)
-def _(weekday, weeks=0, from_=None):
-    if weekday.isdigit():
-        return next_weekday(int(weekday), weeks, from_)
-        
-    weekday = weekday.lower()
-    
-    ind = None
-    days_en = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
-    days_fi = ["ma", "ti", "ke", "to", "pe", "la", "su"]
-    #  Check if found in known day abbreviations
-    for check in (days_en, days_fi):
-        with suppress(ValueError):
-            ind = check.index(weekday)
-            break
-    
-    if ind is None:
-        raise ValueError("Weekday must be 3 letter english or 2 letter "
-                         "finnish abbrevation")
-    return next_weekday(ind, weeks, from_)
 
 if __name__ == "__main__":
     print(datetime.datetime.today().weekday())

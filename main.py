@@ -1,7 +1,6 @@
 import logging
 import asyncio
 import argparse
-import datetime
 from contextlib import suppress
 from os import path
 from functools import wraps
@@ -14,7 +13,7 @@ import tg
 import hoas
 from userconfigs import UserConfigs
 from dbhelper import DBHelper
-from utils import Commands, next_weekday, get_date
+from utils import Commands, get_date
 
 
 class SaunaBotCommands(Commands):
