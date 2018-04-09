@@ -28,39 +28,39 @@ class SaunaBotCommands(Commands):
         return msg
 
     def tt(self, chat_id, *args, **kwargs):
-            """Return timetable for a :day: :sauna
-    day is either in ('mon', 'tue' ...) or ('ma', 'ti' ...)
-    or weekdays number.
-    Sauna is M, H or E"""
+        """Return timetable for a :day: :sauna
+        day is either in ('mon', 'tue' ...) or ('ma', 'ti' ...)
+        or weekdays number.
+        Sauna is M, H or E"""
 
-            weekdays = {
-                "en": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
-                "fi": ["ma", "ti", "ke", "to", "pe", "la", "su"]
-            }
+        weekdays = {
+            "en": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+            "fi": ["ma", "ti", "ke", "to", "pe", "la", "su"]
+        }
 
-            date = get_date(0)
-            sauna_id = sauna_ids["h"]["view"]
+        date = get_date(0)
+        sauna_id = sauna_ids["h"]["view"]
 
-            if len(args) > 2:
+        if len(args) > 2:
+            return "Invalid arguments"
+        for arg in args:
+            arg = arg.lower()
+            if arg.isdigit():
+                date = get_date(int(arg))
+            elif len(arg) == 1 and arg.isalpha():
+                try:
+                    sauna_id = sauna_ids[arg]["view"]
+                except Exception as e:
+                    return "Invalid sauna"
+            elif arg in weekdays["en"] or arg in weekdays["fi"]:
+                date = get_date(arg)
+            else:
                 return "Invalid arguments"
-            for arg in args:
-                arg = arg.lower()
-                if arg.isdigit():
-                    date = get_date(int(arg))
-                elif len(arg) == 1 and arg.isalpha():
-                    try:
-                        sauna_id = sauna_ids[arg]["view"]
-                    except Exception as e:
-                        return "Invalid sauna"
-                elif arg in weekdays["en"] or arg in weekdays["fi"]:
-                    date = get_date(arg)
-                else:
-                    return "Invalid arguments"
 
-            with suppress(ImportError):  # ValueError, TypeError):
-                return '\n'.join((date.strftime("%a %d.%m"),
-                                  hoas_api.get_timetables(
-                                      service=sauna_id, date=date)))
+        with suppress(ImportError):  # ValueError, TypeError):
+            return '\n'.join((date.strftime("%a %d.%m"),
+                              hoas_api.get_timetables(
+                                  service=sauna_id, date=date)))
 
     def show(self, *args, **kwargs):
         """Return reserved saunas"""
@@ -68,8 +68,8 @@ class SaunaBotCommands(Commands):
 
     def config(self, chat_id, *args, **kwargs):
         """User configuration manager.
-Arguments as key=value pairs separated by spaces.
-No arguments for a list of current configurations."""
+        Arguments as key=value pairs separated by spaces.
+        No arguments for a list of current configurations."""
         return UserConfigs().handle(chat_id, args)
 
 
