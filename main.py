@@ -40,7 +40,7 @@ Sauna is M, H OR E"""
             date = next_weekday(weekday)
             return '\n'.join((date.strftime("%a %d.%m"), 
                          hoas_api.get_timetables(service=sauna_id, date=date)))
-        return ("Didn't understand weekday \n " +
+        return ("Didn't understand weekday \n"
                 "Here's the timetable for today\n" +
                 hoas_api.get_timetables())
 
@@ -104,5 +104,5 @@ if __name__ == "__main__":
     bot = tg.SensolaBot(token, commands)
     task = loop.create_task(MessageLoop(
         bot, handle=bot.handle).run_forever())
-    print("Listening ...")    
+    logging.info("Listening...")
     loop.run_forever()

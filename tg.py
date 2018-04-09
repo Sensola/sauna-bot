@@ -28,8 +28,12 @@ class SensolaBot(telepot.aio.Bot):
             logging.info(f"Received message: {msg['text']}")
             content_type, chat_type, chat_id = details
             cmd, *cmd_args = msg['text'].split(" ")
+            if not cmd.startswith("/"):
+                logging.info("No predicate. Ignoring.")
+                return
             func = self.cmds[cmd]
             if not func:
+                logging.info("Not a valid command.")
                 return
             tuuba = self._loop.run_in_executor(None, func, chat_id, *cmd_args)
             asdf = asyncio.wait_for(tuuba, None)
