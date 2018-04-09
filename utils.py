@@ -82,6 +82,29 @@ def print_raw(text, width=50):
         print("-" * width)
 
 
+def get_date(day):
+    weekdays = {
+        "en": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+        "fi": ["ma", "ti", "ke", "to", "pe", "la", "su"]
+    }
+    today = datetime.date.today()
+    current_weekday = today.weekday()
+    if day in weekdays["en"]:
+        weekday = weekdays["en"].index(day)
+        if weekday < current_weekday:
+            day = weekdays["en"].index(day) + (7 - current_weekday)
+        else:
+            day = weekdays["en"].index(day) - current_weekday
+    if day in weekdays["fi"]:
+        weekday = weekdays["fi"].index(day)
+        if weekday < current_weekday:
+            day = weekdays["fi"].index(day) + (7 - current_weekday)
+        else:
+            day = weekdays["fi"].index(day) - current_weekday
+    date = today + datetime.timedelta(days=day)
+    return date
+
+
 @singledispatch
 def next_weekday(weekday, weeks=0, from_=None):
     raise TypeError(f"Weekday must be string or int, was {weekday:!r}")

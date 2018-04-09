@@ -33,7 +33,7 @@ class SensolaBot(telepot.aio.Bot):
                 return
             func = self.cmds[cmd]
             if not func:
-                logging.info("Not a valid command.")
+                logging.info("Not a valid function.")
                 return
             tuuba = self._loop.run_in_executor(None, func, chat_id, *cmd_args)
             asdf = asyncio.wait_for(tuuba, None)

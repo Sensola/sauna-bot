@@ -142,7 +142,6 @@ class Hoas:
             msg = ((f"{{:{width}}}"*len(topics)).format(*topics)) + "\n"
             for row in cal:
                 time, *items = row
-                print(row)
                 msg += (f"{{:{width}}}" * len(row)).format(
                         time, *(state[r[0]] for r in items)) + "\n"
             msg += left

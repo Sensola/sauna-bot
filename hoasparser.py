@@ -188,5 +188,5 @@ def parse_calendar(soup):
                     status = 2
             this_row.append((status, info))
         final_cal.append(this_row)
-    print(final_cal)
+    # print(final_cal)
     return topics, final_cal, reservations_left

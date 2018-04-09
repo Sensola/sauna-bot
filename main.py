@@ -1,9 +1,11 @@
 import logging
 import asyncio
 import argparse
+import datetime
 from contextlib import suppress
 from os import path
 from functools import wraps
+import re
 
 from telepot.aio.loop import MessageLoop
 import yaml
@@ -12,7 +14,7 @@ import tg
 import hoas
 from userconfigs import UserConfigs
 from dbhelper import DBHelper
-from utils import Commands, next_weekday
+from utils import Commands, next_weekday, get_date
 
 
 class SaunaBotCommands(Commands):
@@ -26,23 +28,40 @@ class SaunaBotCommands(Commands):
         msg += f"{self.help(chat_id)}"
         return msg
 
-    def tt(self, chat_id, weekday=0, sauna="", *args, **kwargs):
-        """Return timetable for a :day: :sauna
-day is either in ('mon', 'tue' ...) or ('ma', 'ti' ...)
-or weekdays number. 
-Sauna is M, H OR E"""
+    def tt(self, chat_id, *args, **kwargs):
+            """Return timetable for a :day: :sauna
+    day is either in ('mon', 'tue' ...) or ('ma', 'ti' ...)
+    or weekdays number.
+    Sauna is M, H or E"""
 
-        sauna_id = {"e": 362,
-                    "h": 363,
-                    "m": 364}.get(sauna.lower(), 363)
-        date = None
-        with suppress(ImportError):  # ValueError, TypeError):
-            date = next_weekday(weekday)
-            return '\n'.join((date.strftime("%a %d.%m"), 
-                         hoas_api.get_timetables(service=sauna_id, date=date)))
-        return ("Didn't understand weekday \n"
-                "Here's the timetable for today\n" +
-                hoas_api.get_timetables())
+            weekdays = {
+                "en": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+                "fi": ["ma", "ti", "ke", "to", "pe", "la", "su"]
+            }
+
+            date = get_date(0)
+            sauna_id = sauna_ids["h"]["view"]
+
+            if len(args) > 2:
+                return "Invalid arguments"
+            for arg in args:
+                arg = arg.lower()
+                if arg.isdigit():
+                    date = get_date(int(arg))
+                elif len(arg) == 1 and arg.isalpha():
+                    try:
+                        sauna_id = sauna_ids[arg]["view"]
+                    except Exception as e:
+                        return "Invalid sauna"
+                elif arg in weekdays["en"] or arg in weekdays["fi"]:
+                    date = get_date(arg)
+                else:
+                    return "Invalid arguments"
+
+            with suppress(ImportError):  # ValueError, TypeError):
+                return '\n'.join((date.strftime("%a %d.%m"),
+                                  hoas_api.get_timetables(
+                                      service=sauna_id, date=date)))
 
     def show(self, *args, **kwargs):
         """Return reserved saunas"""
@@ -55,7 +74,7 @@ No arguments for a list of current configurations."""
         return UserConfigs().handle(chat_id, args)
 
 
-def load_config():        
+def load_config():
     config = {}
     try:
         with open("config.yaml") as conf:
@@ -63,6 +82,18 @@ def load_config():
     except Exception as e:
         print("Could not read 'config.yaml'")
     return config
+
+
+def get_sauna_ids(sauna_configs):
+    sauna_ids = {}
+    for sauna in sauna_configs["saunavuorot"]:
+        check = re.compile("^Sauna \d, (?P<letter>[A-Z])-talo$")
+        match = check.match(sauna)
+        letter = match.group("letter").lower()
+        reserve_id = sauna_configs["saunavuorot"][sauna]["reserve"][sauna]
+        view_id = sauna_configs["saunavuorot"][sauna]["view"]
+        sauna_ids[letter] = {"view": view_id, "reserve": reserve_id}
+    return sauna_ids
 
 
 if __name__ == "__main__":
@@ -94,6 +125,7 @@ if __name__ == "__main__":
     else:
         with open("sauna_configs.yaml", "r") as f:
             sauna_configs = yaml.load(f)
+            sauna_ids = get_sauna_ids(sauna_configs)
     
     loop = asyncio.get_event_loop()
     loop.set_debug(True)
