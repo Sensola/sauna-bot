@@ -8,6 +8,7 @@ import re
 
 from telepot.aio.loop import MessageLoop
 import yaml
+from babel import Locale
 
 import tg
 import hoas
@@ -29,14 +30,14 @@ class SaunaBotCommands(Commands):
 
     def tt(self, chat_id, *args, **kwargs):
         """Return timetable for a :day: :sauna
-        day is either in ('mon', 'tue' ...) or ('ma', 'ti' ...)
-        or weekdays number.
+        Day is either the abbreviation of your locale
+        or number of days from now.
         Sauna is M, H or E"""
 
-        weekdays = {
-            "en": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
-            "fi": ["ma", "ti", "ke", "to", "pe", "la", "su"]
-        }
+        lang = UserConfigs()[chat_id]["lang"]
+        weekdays = [name.lower() for i, name in
+                    sorted(Locale(lang).days["format"]["abbreviated"].items())]
+        print(weekdays)
 
         date = get_date(0)
         sauna_id = sauna_ids["h"]["view"]
@@ -52,8 +53,8 @@ class SaunaBotCommands(Commands):
                     sauna_id = sauna_ids[arg]["view"]
                 except Exception as e:
                     return "Invalid sauna"
-            elif arg in weekdays["en"] or arg in weekdays["fi"]:
-                date = get_date(arg)
+            elif arg in weekdays:
+                date = get_date(arg, weekdays)
             else:
                 return "Invalid arguments"
 
@@ -70,7 +71,18 @@ class SaunaBotCommands(Commands):
         """User configuration manager.
         Arguments as key=value pairs separated by spaces.
         No arguments for a list of current configurations."""
-        return UserConfigs().handle(chat_id, args)
+
+        if args == ():  # Just /config returns your configs.
+            return UserConfigs().send_configs(chat_id)
+        conf_dict = {}
+        for conf in args:  # Check syntax, keys, and values
+            try:
+                conf_key, conf_value = UserConfigs().check_conf(conf)
+                conf_dict[conf_key] = conf_value
+            except Exception as e:
+                msg = f"Error: \n{e}"
+                return msg
+        return UserConfigs().update(chat_id, conf_dict)
 
 
 def load_config():

@@ -82,25 +82,17 @@ def print_raw(text, width=50):
         print("-" * width)
 
 
-def get_date(day):
-    weekdays = {
-        "en": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
-        "fi": ["ma", "ti", "ke", "to", "pe", "la", "su"]
-    }
+def get_date(day, weekdays=[]):
     today = datetime.date.today()
     current_weekday = today.weekday()
-    if day in weekdays["en"]:
-        weekday = weekdays["en"].index(day)
-        day = weekday - current_weekday
-        if weekday < current_weekday:
-            day += 7
-    if day in weekdays["fi"]:
-        weekday = weekdays["fi"].index(day)
+    if day in weekdays:
+        weekday = weekdays.index(day)
         day = weekday - current_weekday
         if weekday < current_weekday:
             day += 7
     date = today + datetime.timedelta(days=day)
     return date
+
 
 if __name__ == "__main__":
     print(datetime.datetime.today().weekday())

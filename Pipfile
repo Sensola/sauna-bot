@@ -1,17 +1,13 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [packages]
-
 telepot = "*"
 "bs4" = "*"
 pyyaml = "*"
 requests = "*"
-
+babel = "*"
 
 [dev-packages]
-
