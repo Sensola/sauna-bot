@@ -37,7 +37,6 @@ class SaunaBotCommands(Commands):
         lang = UserConfigs()[chat_id]["lang"]
         weekdays = [name.lower() for i, name in
                     sorted(Locale(lang).days["format"]["abbreviated"].items())]
-        print(weekdays)
 
         date = get_date(0)
         sauna_id = sauna_ids["h"]["view"]

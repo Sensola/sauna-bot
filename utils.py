@@ -65,23 +65,6 @@ class Commands:
         return msg
 
 
-def print_raw(text, width=50):
-    uppers = ""
-    lowers = ""
-    for t in text:
-        a = repr(t)[1:-1]
-        b = hex(ord(t))[2:]
-        pad = 5
-        uppers += a.rjust(pad)
-        lowers += b.rjust(pad)
-    zipped_chunks = ((uppers[i:i + width], lowers[i:i + width])
-                     for i in range(0, len(uppers), width))
-    for t, i in zipped_chunks:
-        print(t)
-        print(i)
-        print("-" * width)
-
-
 def get_date(day, weekdays=[]):
     today = datetime.date.today()
     current_weekday = today.weekday()
