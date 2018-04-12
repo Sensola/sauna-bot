@@ -23,6 +23,8 @@ class SaunaBotCommands(Commands):
         return super().help(cmd, fail=fail)
 
     def start(self, chat_id, *args, **kwargs):
+        """Start a chat with the bot.
+        Adds the user into the config database and sends a help message."""
         msg = ""
         msg += f"{UserConfigs().add_user(chat_id)}\n\n"
         msg += f"{self.help(chat_id)}"
@@ -78,7 +80,7 @@ class SaunaBotCommands(Commands):
             try:
                 conf_key, conf_value = UserConfigs().check_conf(conf)
                 conf_dict[conf_key] = conf_value
-            except Exception as e:
+            except ValueError as e:
                 msg = f"Error: \n{e}"
                 return msg
         return UserConfigs().update(chat_id, conf_dict)
@@ -109,13 +111,13 @@ def get_sauna_ids(sauna_configs):
 if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s",
                         datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
-                        
+
     parser = argparse.ArgumentParser(
         description="Telegram bot for reserving saunas and stuff")
     parser.add_argument("--create-config", action="store_true",
                         help="Find view and reservation ids from hoas site. "
                              "Makes multiple requests to site")
-    
+
     args = parser.parse_args()
     config = load_config()
     if not config \
@@ -124,7 +126,7 @@ if __name__ == "__main__":
         raise SystemExit("You should have 'config.yaml' file to give hoas "
                          "account(s)\nand telegram bot token. "
                          "See config.example.yaml")
-        
+
     hoas_api = hoas.Hoas(config['accounts'])
     DBHelper().setup()
     if args.create_config or not path.exists("sauna_configs.yaml"):
@@ -139,7 +141,7 @@ if __name__ == "__main__":
     
     loop = asyncio.get_event_loop()
     loop.set_debug(True)
-    
+
     token = config["token"]
 
     commands = SaunaBotCommands("/")

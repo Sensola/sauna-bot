@@ -14,9 +14,10 @@ class DBHelper:
         self.conn.commit()
 
     def add_user(self, chat_id):
+        # Add user chat_id into database with default configs
         stmt = "INSERT INTO configs (user, lang, onreserve, notify) VALUES " \
                "(?, ?, ?, ?)"
-        args = (chat_id, "en", "false", "false")  # Default configs for new user
+        args = (chat_id, "en", "false", "off")
         try:
             self.conn.execute(stmt, args)
             self.conn.commit()

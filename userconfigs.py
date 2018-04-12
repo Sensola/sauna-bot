@@ -21,7 +21,7 @@ class UserConfigs:
             try:
                 DBHelper().update_item(user, key, value)
             except Exception as e:
-                msg = f"DATABASE ERROR:\n{e}"
+                msg = "Error occured, try again"
                 return msg
         msg = "Configs updated: \n"
         for key in conf_dict:
@@ -36,18 +36,18 @@ class UserConfigs:
         check = re.compile("^(?P<key>\w*)=(?P<value>[\w:]*)$")  # Check syntax
         match = check.match(conf)
         if not match:
-            raise Exception("Invalid syntax")
+            raise ValueError("Invalid syntax")
         conf_key = match.group("key")
         conf_value = match.group("value")
         if conf_key in self.valid_conf_values.keys():  # Check key
             check = re.compile(self.valid_conf_values[conf_key])  # Check value
             match = check.match(conf_value)
             if not match:
-                raise Exception("Invalid value")
+                raise ValueError("Invalid value")
             else:
                 return conf_key, conf_value
         else:
-            raise Exception("Invalid key")
+            raise ValueError("Invalid key")
 
     def send_configs(self, chat_id):
         configs = DBHelper()[chat_id].data
