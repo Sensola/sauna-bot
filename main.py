@@ -133,7 +133,8 @@ if __name__ == "__main__":
         sauna_configs = hoas_api.create_config()
         with open("sauna_configs.yaml", "w") as f:
             yaml.dump(sauna_configs, f, default_flow_style=False)
-        raise SystemExit("Configs created")
+        print("Configs created")
+        raise SystemExit(0)
     else:
         with open("sauna_configs.yaml", "r") as f:
             sauna_configs = yaml.load(f)
