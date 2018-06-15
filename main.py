@@ -18,6 +18,7 @@ from utils import Commands, get_date
 
 
 class SaunaBotCommands(Commands):
+
     @wraps(Commands.help)
     def help(self, chat_id, cmd="", *, fail=""):
         return super().help(cmd, fail=fail)
@@ -25,9 +26,10 @@ class SaunaBotCommands(Commands):
     def start(self, chat_id, *args, **kwargs):
         """Start a chat with the bot.
         Adds the user into the config database and sends a help message."""
-        msg = ""
-        msg += f"{UserConfigs().add_user(chat_id)}\n\n"
-        msg += f"{self.help(chat_id)}"
+        help =  self.help(chat_id)
+        add_msg = UserConfigs().add_user(chat_id)
+        
+        msg = f"{add_msg}\n\n{help}"
         return msg
 
     def tt(self, chat_id, *args, **kwargs):
@@ -37,14 +39,17 @@ class SaunaBotCommands(Commands):
         Sauna is M, H or E"""
 
         lang = UserConfigs()[chat_id]["lang"]
-        weekdays = [name.lower() for i, name in
-                    sorted(Locale(lang).days["format"]["abbreviated"].items())]
+        weekdays = [
+            name.lower()
+            for name in sorted(Locale(lang).days["format"]["abbreviated"].values())
+        ]
 
         date = get_date(0)
         sauna_id = sauna_ids["h"]["view"]
 
         if len(args) > 2:
             return "Invalid arguments"
+
         for arg in args:
             arg = arg.lower()
             if arg.isdigit():
@@ -54,15 +59,18 @@ class SaunaBotCommands(Commands):
                     sauna_id = sauna_ids[arg]["view"]
                 except Exception as e:
                     return "Invalid sauna"
+
             elif arg in weekdays:
                 date = get_date(arg, weekdays)
             else:
                 return "Invalid arguments"
 
-        with suppress(ImportError):  # ValueError, TypeError):
-            return '\n'.join((date.strftime("%a %d.%m"),
-                              hoas_api.get_timetables(
-                                  service=sauna_id, date=date)))
+        return "\n".join(
+            (
+                date.strftime("%a %d.%m"),
+                hoas_api.get_timetables(service=sauna_id, date=date),
+            )
+        )
 
     def show(self, *args, **kwargs):
         """Return reserved saunas"""
@@ -75,6 +83,7 @@ class SaunaBotCommands(Commands):
 
         if args == ():  # Just /config returns your configs.
             return UserConfigs().send_configs(chat_id)
+
         conf_dict = {}
         for conf in args:  # Check syntax, keys, and values
             try:
@@ -83,6 +92,7 @@ class SaunaBotCommands(Commands):
             except ValueError as e:
                 msg = f"Error: \n{e}"
                 return msg
+
         return UserConfigs().update(chat_id, conf_dict)
 
 
@@ -109,25 +119,32 @@ def get_sauna_ids(sauna_configs):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s",
-                        datefmt='%d/%m/%Y %H:%M:%S', level=logging.INFO)
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s:%(message)s",
+        datefmt="%d/%m/%Y %H:%M:%S",
+        level=logging.INFO,
+    )
 
     parser = argparse.ArgumentParser(
-        description="Telegram bot for reserving saunas and stuff")
-    parser.add_argument("--create-config", action="store_true",
-                        help="Find view and reservation ids from hoas site. "
-                             "Makes multiple requests to site")
+        description="Telegram bot for reserving saunas and stuff"
+    )
+    parser.add_argument(
+        "--create-config",
+        action="store_true",
+        help="Find view and reservation ids from hoas site. "
+        "Makes multiple requests to site",
+    )
 
     args = parser.parse_args()
     config = load_config()
-    if not config \
-            or config.get("token") is None \
-            or config.get('accounts') is None:
-        raise SystemExit("You should have 'config.yaml' file to give hoas "
-                         "account(s)\nand telegram bot token. "
-                         "See config.example.yaml")
+    if not config or config.get("token") is None or config.get("accounts") is None:
+        raise SystemExit(
+            "You should have 'config.yaml' file to give hoas "
+            "account(s)\nand telegram bot token. "
+            "See config.example.yaml"
+        )
 
-    hoas_api = hoas.Hoas(config['accounts'])
+    hoas_api = hoas.Hoas(config["accounts"])
     DBHelper().setup()
     if args.create_config or not path.exists("sauna_configs.yaml"):
         sauna_configs = hoas_api.create_config()
@@ -135,11 +152,12 @@ if __name__ == "__main__":
             yaml.dump(sauna_configs, f, default_flow_style=False)
         print("Configs created")
         raise SystemExit(0)
+
     else:
         with open("sauna_configs.yaml", "r") as f:
             sauna_configs = yaml.load(f)
             sauna_ids = get_sauna_ids(sauna_configs)
-    
+
     loop = asyncio.get_event_loop()
     loop.set_debug(True)
 
@@ -147,7 +165,6 @@ if __name__ == "__main__":
 
     commands = SaunaBotCommands("/")
     bot = tg.SensolaBot(token, commands)
-    task = loop.create_task(MessageLoop(
-        bot, handle=bot.handle).run_forever())
+    task = loop.create_task(MessageLoop(bot, handle=bot.handle).run_forever())
     logging.info("Listening...")
     loop.run_forever()
