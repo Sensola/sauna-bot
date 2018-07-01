@@ -18,7 +18,6 @@ from utils import Commands, get_date
 
 
 class SaunaBotCommands(Commands):
-
     @wraps(Commands.help)
     def help(self, chat_id, cmd="", *, fail=""):
         return super().help(cmd, fail=fail)
@@ -26,9 +25,9 @@ class SaunaBotCommands(Commands):
     def start(self, chat_id, *args, **kwargs):
         """Start a chat with the bot.
         Adds the user into the config database and sends a help message."""
-        help =  self.help(chat_id)
+        help = self.help(chat_id)
         add_msg = UserConfigs().add_user(chat_id)
-        
+
         msg = f"{add_msg}\n\n{help}"
         return msg
 

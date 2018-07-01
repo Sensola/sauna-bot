@@ -11,14 +11,24 @@ class SensolaBot(telepot.aio.Bot):
         self.cmds = cmds
 
     @asyncio.coroutine
-    def send_message(self, chat_id, content, reply_markup=None,
-                     parse_mode="HTML", disable_notification=True,
-                     disable_web_page_preview=True):
+    def send_message(
+        self,
+        chat_id,
+        content,
+        reply_markup=None,
+        parse_mode="HTML",
+        disable_notification=True,
+        disable_web_page_preview=True,
+    ):
         logging.info(f"Sending message:{chat_id, content}")
         yield from self.sendMessage(
-            chat_id, content, parse_mode=parse_mode, reply_markup=reply_markup,
+            chat_id,
+            content,
+            parse_mode=parse_mode,
+            reply_markup=reply_markup,
             disable_notification=disable_notification,
-            disable_web_page_preview=disable_web_page_preview)
+            disable_web_page_preview=disable_web_page_preview,
+        )
 
     @asyncio.coroutine
     def handle(self, msg):
@@ -27,7 +37,7 @@ class SensolaBot(telepot.aio.Bot):
         if flavor == "chat" and details[0] == "text":
             logging.info(f"Received message: {msg['text']}")
             content_type, chat_type, chat_id = details
-            cmd, *cmd_args = msg['text'].split(" ")
+            cmd, *cmd_args = msg["text"].split(" ")
             if not cmd.startswith("/"):
                 logging.info("No predicate. Ignoring.")
                 return

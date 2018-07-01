@@ -11,3 +11,7 @@ requests = "*"
 babel = "*"
 
 [dev-packages]
+black = ">=18.6b4"
+
+ [pipenv]
+ allow_prereleases = true

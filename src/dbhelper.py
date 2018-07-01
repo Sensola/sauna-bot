@@ -8,15 +8,15 @@ class DBHelper:
         self.columns = ["user", "lang", "onreserve", "notify"]
 
     def setup(self):
-        stmt = "CREATE TABLE IF NOT EXISTS configs "\
-               "(user UNIQUE, lang, onreserve, notify)"
+        stmt = (
+            "CREATE TABLE IF NOT EXISTS configs (user UNIQUE, lang, onreserve, notify)"
+        )
         self.conn.execute(stmt)
         self.conn.commit()
 
     def add_user(self, chat_id):
         # Add user chat_id into database with default configs
-        stmt = "INSERT INTO configs (user, lang, onreserve, notify) VALUES " \
-               "(?, ?, ?, ?)"
+        stmt = "INSERT INTO configs (user, lang, onreserve, notify) VALUES (?, ?, ?, ?)"
         args = (chat_id, "en", "false", "off")
         try:
             self.conn.execute(stmt, args)
@@ -33,7 +33,7 @@ class DBHelper:
 
     def __getitem__(self, user):
         stmt = "SELECT * FROM configs WHERE user = (?)"
-        args = (user, )
+        args = (user,)
         row = self.conn.execute(stmt, args).fetchone()
         rowdict = dict(zip(self.columns, row))
         del rowdict["user"]

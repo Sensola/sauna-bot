@@ -20,12 +20,14 @@ class Commands:
     def __getitem__(self, cmd):
         """Return function self.{cmd} if not found, return help function"""
         assert isinstance(cmd, str)
-        name = cmd[len(self.predicate):]
+        name = cmd[len(self.predicate) :]
         # Check that command is valid and not private,
         # protected or special method and attribute for it exists
-        if (cmd.startswith(self.predicate)
-                and not cmd.startswith(self.predicate + "_")
-                and hasattr(self, name)):
+        if (
+            cmd.startswith(self.predicate)
+            and not cmd.startswith(self.predicate + "_")
+            and hasattr(self, name)
+        ):
             item = self.__getattribute__(name)
             if callable(item):
                 return item
@@ -41,7 +43,7 @@ class Commands:
         class_dict.update({"help": self.help})
         if cmd.startswith(self.predicate):
             # Strip predicate
-            cmd = cmd[len(self.predicate):]
+            cmd = cmd[len(self.predicate) :]
         # Check that command exists and is not
         # private, protected or special method
         if (not cmd.startswith("_")) and cmd in class_dict.keys():
@@ -49,7 +51,8 @@ class Commands:
             if callable(item):
                 if item.__doc__:
                     return "Help on command '{}':\n.   {}".format(
-                        cmd, "\n.    ".join(cleandoc(item.__doc__).split("\n")))
+                        cmd, "\n.    ".join(cleandoc(item.__doc__).split("\n"))
+                    )
                 return "No help on command '{}'".format(cmd)
         # If no cmd given or wrong cmd given, return commands
         commands = []
@@ -57,9 +60,11 @@ class Commands:
             if not key.startswith("_"):
                 if callable(value):
                     commands.append(key)
-        msg = ("Commands:\n {}".format(", ".join(commands)) +
-               "\n for more help on command, use " +
-               "{}help command".format(self.predicate))
+        msg = (
+            "Commands:\n {}".format(", ".join(commands))
+            + "\n for more help on command, use "
+            + "{}help command".format(self.predicate)
+        )
         if fail:
             msg = fail + "\n" + msg
         return msg

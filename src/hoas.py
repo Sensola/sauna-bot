@@ -21,19 +21,19 @@ class HoasInterface:
         self.session = requests.Session()
         self.configs = []
         self._login()
-        
+
     def _login(self):
         """Create session for handling stuff"""
 
-        page = self.session.post(f"{self.BASE_URL}/auth/login",
-                                 data=self.login_params)
+        page = self.session.post(f"{self.BASE_URL}/auth/login", data=self.login_params)
 
         # Hoas site redirects user back to login site if auth fails
         if page.url == f"{self.BASE_URL}/auth/login":
             raise AuthException("Login failed")
 
-    def view_page(self, service: int=None, date:
-                  datetime.datetime = None, cache_time=20):
+    def view_page(
+        self, service: int = None, date: datetime.datetime = None, cache_time=20
+    ):
         try:
             date = f"{date:%d/%m/%y}"
         except Exception:
@@ -44,14 +44,18 @@ class HoasInterface:
 
         cache_key = frozenset((service, date))
         new_request_time = time.time() - cache_time
-        if (cache_key in self.cache and
-                self.cache[cache_key][0] >= new_request_time):
-            print("return from cache", self.cache[cache_key][0],
-                  cache_time, new_request_time)
+        if cache_key in self.cache and self.cache[cache_key][0] >= new_request_time:
+            print(
+                "return from cache",
+                self.cache[cache_key][0],
+                cache_time,
+                new_request_time,
+            )
             return self.cache[cache_key][1]
 
-        page = self.session.get(f"{self.BASE_URL}/varaus/service/timetable/"
-                                f"{service}/{date}")
+        page = self.session.get(
+            f"{self.BASE_URL}/varaus/service/timetable/{service}/{date}"
+        )
 
         if page.url == f"{self.BASE_URL}/auth/login":
             self._login()
@@ -77,8 +81,7 @@ class Hoas:
     def __init__(self, config={}):
         self.config = config
         try:
-            self.accounts = [HoasInterface(account)
-                             for account in self.config]
+            self.accounts = [HoasInterface(account) for account in self.config]
         except Exception:
             # Todo: Use logger
             print("Couldn't parse configs", file=sys.stderr)
@@ -95,7 +98,7 @@ class Hoas:
             for i, (service_type, view_id) in enumerate(menus):
                 config[service_type] = {}
                 page = bs(hoas.view_page(view_id).text, "html.parser")
-                
+
                 view_ids = hoasparser.parse_view_ids(page)
                 # The first viewed sites id is found in menus, but not on page
                 view_ids[0] = view_ids[0][0], menus[i][1]
@@ -103,34 +106,29 @@ class Hoas:
                 print(service_type)
                 services_dict = {}
                 for name, view_id in view_ids:
-                    services_dict.setdefault(
-                        name,
-                        {
-                            'reserve': {},
-                            'view':    view_id
-                        }
-                    )
+                    services_dict.setdefault(name, {"reserve": {}, "view": view_id})
                     for i in range(15):
                         d = datetime.datetime.today() + datetime.timedelta(days=i)
                         page = hoas.view_page(view_id, date=d).text
 
                         soup = bs(page, "html.parser")
-                        services_dict[name]['reserve'].update(
+                        services_dict[name]["reserve"].update(
                             filter(
                                 (lambda x: x[1]),
-                                hoasparser.get_reservation_ids(soup).items()
-                        ))
+                                hoasparser.get_reservation_ids(soup).items(),
+                            )
+                        )
                         print(services_dict)
-                        if len(services_dict[name]['reserve']) and \
-                                all(services_dict[name]['reserve'].values()):
+                        if len(services_dict[name]["reserve"]) and all(
+                            services_dict[name]["reserve"].values()
+                        ):
                             break
                     config.setdefault(service_type, {})
                     config[service_type] = services_dict
-                    
+
         return config
 
-    def get_timetables(self, service: int=None,
-                       date: datetime=None, cache_time=10):
+    def get_timetables(self, service: int = None, date: datetime = None, cache_time=10):
 
         state = ("Vapaa", "Varattu", "Oma varaus")
         for account in self.accounts:
@@ -139,11 +137,12 @@ class Hoas:
             topics, cal, left = hoasparser.parse_calendar(soup)
             width = max(*map(len, topics), *map(len, state))
 
-            msg = ((f"{{:{width}}}"*len(topics)).format(*topics)) + "\n"
+            msg = ((f"{{:{width}}}" * len(topics)).format(*topics)) + "\n"
             for row in cal:
                 time, *items = row
                 msg += (f"{{:{width}}}" * len(row)).format(
-                        time, *(state[r[0]] for r in items)) + "\n"
+                    time, *(state[r[0]] for r in items)
+                ) + "\n"
             msg += left
         return msg
 
@@ -152,8 +151,7 @@ class Hoas:
         for account in self.accounts:
             page = account.view_page().text
             soup = bs(page, "html.parser")
-            (saunas, common_saunas, laundry) = \
-                hoasparser.get_users_reservations(soup)
+            (saunas, common_saunas, laundry) = hoasparser.get_users_reservations(soup)
             for sauna in saunas:
                 sauna_set.add(sauna)
         msg = "Reservations:\n"

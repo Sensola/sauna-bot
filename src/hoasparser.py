@@ -5,15 +5,14 @@ import datetime
 from collections import OrderedDict, namedtuple
 
 
-class Reservation(namedtuple('Reservation', 'start end where info')):
+class Reservation(namedtuple("Reservation", "start end where info")):
     def __str__(self):
-        return f"{self.start:%a %d.%m.%Y from %H:%M} to {self.end:%H:%M} " \
-                   f"in {self.where} {self.info}"
+        return f"{self.start:%a %d.%m.%Y from %H:%M} to {self.end:%H:%M} in {self.where} {self.info}"
 
 
 def get_users_reservations(soup) -> (list, list, list):
     """Find users reservations from Beautiful soup object"""
-    res = soup.find(class_='myReservations').find_all("a")
+    res = soup.find(class_="myReservations").find_all("a")
     common_saunas = []
     saunas = []
     laundry = []
@@ -54,7 +53,7 @@ def parse_common_saunas(r):
     text = r.text
 
     # replace " {EN DASH} " with dash so that time range will be "%h-%h"
-    text = text.replace(" " + chr(0x2013)+" ", "-")
+    text = text.replace(" " + chr(0x2013) + " ", "-")
 
     # Split datetime, location and info
     sauna = [it.strip() for it in text.split("-\n")]
@@ -64,12 +63,12 @@ def parse_common_saunas(r):
 
     start_time, end_time = sauna[1].split("-")
     return dict(
-            weekday=(sauna[0][:-3]),
-            where=sauna[2],
-            info=sauna[3],
-            start_time=start_time,
-            end_time=end_time,
-            )
+        weekday=(sauna[0][:-3]),
+        where=sauna[2],
+        info=sauna[3],
+        start_time=start_time,
+        end_time=end_time,
+    )
 
 
 def parse_users_reservations(r):
@@ -91,31 +90,19 @@ def parse_users_reservations(r):
         where = parts[2]
         info = ""
     date = parts[0][3:]
-    start = datetime.datetime.strptime(f"{date} {start_time}",
-                                       "%d.%m.%Y %H:%M")
-    end = datetime.datetime.strptime(f"{date} {end_time}",
-                                     "%d.%m.%Y %H:%M")
-    return Reservation(
-            start=start,
-            end=end,
-            where=where,
-            info=info
-        )
+    start = datetime.datetime.strptime(f"{date} {start_time}", "%d.%m.%Y %H:%M")
+    end = datetime.datetime.strptime(f"{date} {end_time}", "%d.%m.%Y %H:%M")
+    return Reservation(start=start, end=end, where=where, info=info)
 
 
 def get_reservation_ids(soup):
     topics, cal, reservations_left = parse_calendar(soup)
     fin = OrderedDict(
-        itertools.islice(
-            zip(
-                topics, 
-                itertools.repeat(OrderedDict())
-            ),
-            1,
-            None
-        )
+        itertools.islice(zip(topics, itertools.repeat(OrderedDict())), 1, None)
     )
-    url_regexp = re.compile("https://booking.hoas.fi/varaus/service/reserve/(?P<id>[0-9]*)/.*")
+    url_regexp = re.compile(
+        "https://booking.hoas.fi/varaus/service/reserve/(?P<id>[0-9]*)/.*"
+    )
     if not cal:
         return fin
     # First row is (sub)services' names and second is remaining reservations
@@ -136,10 +123,10 @@ def get_reservation_ids(soup):
 def parse_view_ids(soup):
     fin = []
     print(type(soup))
-    service_nav = soup.find(class_='service-nav')
+    service_nav = soup.find(class_="service-nav")
     fin.append((service_nav.span.text, None))
     # TODO: do not guess
-    for a in service_nav.find_all('a'):
+    for a in service_nav.find_all("a"):
         # Take last part of url
         fin.append((a.text, a["href"].rsplit("/", 1)[-1]))
     return fin
@@ -148,9 +135,9 @@ def parse_view_ids(soup):
 def parse_menu(soup):
     fin = []
     print(type(soup))
-    menu = soup.find(class_='menu')
+    menu = soup.find(class_="menu")
     for a in menu.find_all("a"):
-        view_id = a["href"].rsplit("/",1)[-1]
+        view_id = a["href"].rsplit("/", 1)[-1]
         if view_id.isnumeric():
             fin.append((a["class"][0], view_id))
     return fin
@@ -158,10 +145,10 @@ def parse_menu(soup):
 
 def parse_calendar(soup):
     # TODO: Check that this works also with laundries
-    calendar = soup.find(class_='calendar').find_all("tr")
+    calendar = soup.find(class_="calendar").find_all("tr")
     final_cal = []
     cal = iter(calendar)
-    topics = [x.text.strip()for x in next(cal).find_all("td")]
+    topics = [x.text.strip() for x in next(cal).find_all("td")]
     topics[0] = "time"
     try:
         reservations_left = next(cal).text.strip()
@@ -184,7 +171,7 @@ def parse_calendar(soup):
                 info = data.a.attrs
                 # ´free
                 status = 0
-                if data.a.get("class") == ['myReservation']:
+                if data.a.get("class") == ["myReservation"]:
                     status = 2
             this_row.append((status, info))
         final_cal.append(this_row)

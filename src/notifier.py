@@ -1,7 +1,9 @@
 from datetime import datetime
 
+
 class Notifier:
     """Handler for managing callbacks"""
+
     def __init__(self, loop):
         self.loop = loop
         self.active = {}
@@ -10,12 +12,11 @@ class Notifier:
         """Schedule new call to :callback: at :when: and save it under :id:"""
         now = datetime.now().timestamp()
         delay = when.timestamp() - now
-        
+
         def callback_with_remove():
             callback()
             del self.active[id][when]
-            
-        
+
         print(f"Delay: {delay}")
         future = self.loop.call_later(delay, callback_with_remove)
 
@@ -36,7 +37,8 @@ class Notifier:
         except Exception:
             logger.log("")
 
-async def poller(func, callback ,sleep=10*60):
+
+async def poller(func, callback, sleep=10 * 60):
     """ Call :func: every :sleep: seconds and if result is different than 
         previously, call callback with changed items"""
     previous = []
@@ -52,7 +54,3 @@ async def poller(func, callback ,sleep=10*60):
                 time = user.notif_time
                 callback(id, time, callback)
                 await asyncio.sleep(0)
-            
-
-
-    
