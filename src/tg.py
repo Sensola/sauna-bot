@@ -10,8 +10,7 @@ class SensolaBot(telepot.aio.Bot):
         super().__init__(token)
         self.cmds = cmds
 
-    @asyncio.coroutine
-    def send_message(
+    async def send_message(
         self,
         chat_id,
         content,
@@ -21,7 +20,7 @@ class SensolaBot(telepot.aio.Bot):
         disable_web_page_preview=True,
     ):
         logging.info(f"Sending message:{chat_id, content}")
-        yield from self.sendMessage(
+        await self.sendMessage(
             chat_id,
             content,
             parse_mode=parse_mode,
@@ -30,8 +29,7 @@ class SensolaBot(telepot.aio.Bot):
             disable_web_page_preview=disable_web_page_preview,
         )
 
-    @asyncio.coroutine
-    def handle(self, msg):
+    async def handle(self, msg):
         flavor, details = telepot.flance(msg)
         # TODO: log?
         if flavor == "chat" and details[0] == "text":
@@ -46,13 +44,12 @@ class SensolaBot(telepot.aio.Bot):
                 logging.info("Not a valid function.")
                 return
             tuuba = self._loop.run_in_executor(None, func, chat_id, *cmd_args)
-            asdf = asyncio.wait_for(tuuba, None)
-            msg = yield from asdf
+            msg = await asyncio.wait_for(tuuba, None)
             if not msg:
                 msg = "202 no content"
-            yield from self.send_message(chat_id, msg)
+            await self.send_message(chat_id, msg)
 
-            # yield from self.cmds[cmd](
+            # await self.cmds[cmd](
             #    self, type=chat_type, id=chat_id, cmd=cmd, args=cmd_args)
         elif flavor == "inline_query":
             query_id, sender_id, query = details

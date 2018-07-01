@@ -6,9 +6,9 @@ from dbhelper import DBHelper
 class UserConfigs:
     def __init__(self):
         self.valid_conf_values = {
-            "lang": "fi|en",
-            "onreserve": "true|false",
-            "notify": "^(?:\d|[01]\d|2[0-3]):[0-5]\d|off$",
+            "lang": r"fi|en",
+            "onreserve": r"true|false",
+            "notify": r"^(?:\d|[01]\d|2[0-3]):[0-5]\d|off$",
         }
 
     def __getitem__(self, chat_id):
@@ -33,7 +33,7 @@ class UserConfigs:
         return DBHelper().add_user(chat_id)
 
     def check_conf(self, conf):
-        check = re.compile("^(?P<key>\w*)=(?P<value>[\w:]*)$")  # Check syntax
+        check = re.compile(r"^(?P<key>\w*)=(?P<value>[\w:]*)$")  # Check syntax
         match = check.match(conf)
         if not match:
             raise ValueError("Invalid syntax")

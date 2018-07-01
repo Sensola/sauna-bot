@@ -1,6 +1,9 @@
+from typing import Any, Optional
+
+import logging
 import time
 import sys
-import datetime
+from datetime import datetime, timedelta
 
 import requests
 from bs4 import BeautifulSoup as bs
@@ -9,14 +12,14 @@ import hoasparser
 
 
 class AuthException(Exception):
-    pass
+    """Authentication failed."""
 
 
 class HoasInterface:
     BASE_URL = "https://booking.hoas.fi"
 
     def __init__(self, login_params):
-        self.cache = {}
+        self.cache: Dict[float, str] = {}
         self.login_params = login_params
         self.session = requests.Session()
         self.configs = []
@@ -31,21 +34,29 @@ class HoasInterface:
         if page.url == f"{self.BASE_URL}/auth/login":
             raise AuthException("Login failed")
 
-    def view_page(
-        self, service: int = None, date: datetime.datetime = None, cache_time=20
-    ):
-        try:
-            date = f"{date:%d/%m/%y}"
-        except Exception:
-            date = f"{datetime.datetime.today():%d/%m/%y}"
+    def get_page(self, *args: Any, **kwargs: Any):
+        r = self.session.get(*args, **kwargs)
 
-        if service is None:
-            service = 0
+        if page.url == f"{self.BASE_URL}/auth/login":
+            self._login()
+            r = self.get_hoas_page(service, date)
+
+        r.encoding = "utf-8"
+        return r
+
+    def view_page(
+        self, service: int = 0, date: Optional[datetime] = None, cache_time=20
+    ) -> str:
+
+        if date is None:
+            date = datetime.today()
+
+        date = f"{date:%d/%m/%y}"
 
         cache_key = frozenset((service, date))
         new_request_time = time.time() - cache_time
         if cache_key in self.cache and self.cache[cache_key][0] >= new_request_time:
-            print(
+            logging.debug(
                 "return from cache",
                 self.cache[cache_key][0],
                 cache_time,
@@ -53,14 +64,8 @@ class HoasInterface:
             )
             return self.cache[cache_key][1]
 
-        page = self.session.get(
-            f"{self.BASE_URL}/varaus/service/timetable/{service}/{date}"
-        )
-
-        if page.url == f"{self.BASE_URL}/auth/login":
-            self._login()
-            page = self.get_hoas_page(service, date)
-        page.encoding = "utf-8"
+        r = self.get_page(f"{self.BASE_URL}/varaus/service/timetable/{service}/{date}")
+        page = r.text
 
         self.cache[cache_key] = (time.time(), page)
         return page
@@ -108,7 +113,7 @@ class Hoas:
                 for name, view_id in view_ids:
                     services_dict.setdefault(name, {"reserve": {}, "view": view_id})
                     for i in range(15):
-                        d = datetime.datetime.today() + datetime.timedelta(days=i)
+                        d = datetime.today() + timedelta(days=i)
                         page = hoas.view_page(view_id, date=d).text
 
                         soup = bs(page, "html.parser")
@@ -160,4 +165,4 @@ class Hoas:
         return msg
 
     def reserve(self):
-        return NotImplemented
+        raise NotImplementedError
