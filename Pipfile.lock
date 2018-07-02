@@ -1,14 +1,13 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "976062a1cbcf2ba0faf05d907a2cfe3de38f8776694b993ae61a4ea6ed9a98a6"
+            "sha256": "d5850212b48aada613eaaf5dcd3c6eb9a1d4aa0bb0ab52ab4bec42b18b564677"
         },
         "pipfile-spec": 6,
         "requires": {},
         "sources": [
             {
                 "name": "pypi",
-                "pre": true,
                 "url": "https://pypi.python.org/simple",
                 "verify_ssl": true
             }
@@ -40,6 +39,7 @@
                 "sha256:474d4bc64cee20603e225eb1ece15e248962958b45a3648a9f5cc29e827a610c",
                 "sha256:b3c0ddc416736619bd4a95ca31de8da6920c3b9a140c64dbef2b2fa7bf521287"
             ],
+            "markers": "python_version >= '3.5.3'",
             "version": "==3.0.0"
         },
         "attrs": {
@@ -126,10 +126,10 @@
         },
         "pyyaml": {
             "hashes": [
-                "sha256:406b717f739e2d00c49873068b71f5454c2420157db51b082d4d2beb17ffffb6"
+                "sha256:d21173ae4e086b423d0b3ab353507d6e79a2127712daf74fa49cc53fe75c511a"
             ],
             "index": "pypi",
-            "version": "==4.2b2"
+            "version": "==4.2b3"
         },
         "requests": {
             "hashes": [
@@ -151,6 +151,7 @@
                 "sha256:a68ac5e15e76e7e5dd2b8f94007233e01effe3e50e8daddf69acfd81cb686baf",
                 "sha256:b5725a0bd4ba422ab0e66e89e030c806576753ea3ee08554382c14e685d117b5"
             ],
+            "markers": "python_version >= '2.6' and python_version != '3.1.*' and python_version != '3.0.*' and python_version != '3.3.*' and python_version < '4' and python_version != '3.2.*'",
             "version": "==1.23"
         },
         "yarl": {
@@ -165,6 +166,7 @@
                 "sha256:f17495e6fe3d377e3faac68121caef6f974fcb9e046bc075bcff40d8e5cc69a4",
                 "sha256:f85900b9cca0c67767bb61b2b9bd53208aaa7373dae633dbe25d179b4bf38aa7"
             ],
+            "markers": "python_version >= '3.4.1'",
             "version": "==1.2.6"
         }
     },
