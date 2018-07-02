@@ -37,7 +37,7 @@ class HoasInterface:
     def get_page(self, *args: Any, **kwargs: Any):
         r = self.session.get(*args, **kwargs)
 
-        if page.url == f"{self.BASE_URL}/auth/login":
+        if r.url == f"{self.BASE_URL}/auth/login":
             self._login()
             r = self.get_hoas_page(service, date)
 
@@ -97,12 +97,12 @@ class Hoas:
         config = {}
         for hoas in self.accounts:
             # for stuff in
-            page = bs(hoas.view_page(0).text, "html.parser")
+            page = bs(hoas.view_page(0), "html.parser")
             menus = hoasparser.parse_menu(page)
             print(menus)
             for i, (service_type, view_id) in enumerate(menus):
                 config[service_type] = {}
-                page = bs(hoas.view_page(view_id).text, "html.parser")
+                page = bs(hoas.view_page(view_id), "html.parser")
 
                 view_ids = hoasparser.parse_view_ids(page)
                 # The first viewed sites id is found in menus, but not on page
@@ -114,7 +114,7 @@ class Hoas:
                     services_dict.setdefault(name, {"reserve": {}, "view": view_id})
                     for i in range(15):
                         d = datetime.today() + timedelta(days=i)
-                        page = hoas.view_page(view_id, date=d).text
+                        page = hoas.view_page(view_id, date=d)
 
                         soup = bs(page, "html.parser")
                         services_dict[name]["reserve"].update(
@@ -137,7 +137,7 @@ class Hoas:
 
         state = ("Vapaa", "Varattu", "Oma varaus")
         for account in self.accounts:
-            page = account.view_page(service=service, date=date).text
+            page = account.view_page(service=service, date=date)
             soup = bs(page, "html.parser")
             topics, cal, left = hoasparser.parse_calendar(soup)
             width = max(*map(len, topics), *map(len, state))
@@ -154,7 +154,7 @@ class Hoas:
     def get_reservations(self):
         sauna_set = set()
         for account in self.accounts:
-            page = account.view_page().text
+            page = account.view_page()
             soup = bs(page, "html.parser")
             (saunas, common_saunas, laundry) = hoasparser.get_users_reservations(soup)
             for sauna in saunas:
