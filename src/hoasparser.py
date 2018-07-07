@@ -88,7 +88,7 @@ def get_reservation_ids(soup):
         itertools.islice(zip(topics, itertools.repeat(OrderedDict())), 1, None)
     )
     url_regexp = re.compile(
-        "https://booking.hoas.fi/varaus/service/reserve/(?P<id>[0-9]*)/.*"
+        r"https://booking.hoas.fi/varaus/service/reserve/(?P<id>[0-9]*)/.*"
     )
     if not cal:
         return fin
