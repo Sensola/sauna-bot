@@ -1,8 +1,7 @@
-from typing import Any, Optional
+from typing import Any, Optional, List, Tuple, Dict
 
 import logging
 import time
-import sys
 from datetime import datetime, timedelta
 
 import requests
@@ -18,14 +17,14 @@ class AuthException(Exception):
 class HoasInterface:
     BASE_URL = "https://booking.hoas.fi"
 
-    def __init__(self, login_params):
-        self.cache: Dict[float, str] = {}
-        self.login_params = login_params
-        self.session = requests.Session()
-        self.configs = []
+    def __init__(self, login_params: Dict[str, str]) -> None:
+        self.cache: Dict[frozenset, Tuple[float, str]] = {}
+        self.login_params: Dict[str, str] = login_params
+        self.session: requests.Session = requests.Session()
+        self.configs: list = []
         self._login()
 
-    def _login(self):
+    def _login(self) -> None:
         """Create session for handling stuff"""
 
         page = self.session.post(f"{self.BASE_URL}/auth/login", data=self.login_params)
@@ -34,12 +33,14 @@ class HoasInterface:
         if page.url == f"{self.BASE_URL}/auth/login":
             raise AuthException("Login failed")
 
-    def get_page(self, *args: Any, **kwargs: Any):
+    def get_page(self, *args: Any, **kwargs: Any) -> requests.Response:
         r = self.session.get(*args, **kwargs)
 
         if r.url == f"{self.BASE_URL}/auth/login":
             self._login()
-            r = self.get_hoas_page(service, date)
+            r = self.session.get(*args, **kwargs)
+
+            assert r.url != f"{self.BASE_URL}/auth/login"
 
         r.encoding = "utf-8"
         return r
@@ -51,9 +52,9 @@ class HoasInterface:
         if date is None:
             date = datetime.today()
 
-        date = f"{date:%d/%m/%y}"
+        date_path: str = f"{date:%d/%m/%y}"
 
-        cache_key = frozenset((service, date))
+        cache_key = frozenset((service, date_path))
         new_request_time = time.time() - cache_time
         if cache_key in self.cache and self.cache[cache_key][0] >= new_request_time:
             logging.debug(
@@ -64,7 +65,9 @@ class HoasInterface:
             )
             return self.cache[cache_key][1]
 
-        r = self.get_page(f"{self.BASE_URL}/varaus/service/timetable/{service}/{date}")
+        r = self.get_page(
+            f"{self.BASE_URL}/varaus/service/timetable/{service}/{date_path}"
+        )
         page = r.text
 
         self.cache[cache_key] = (time.time(), page)
@@ -83,18 +86,18 @@ class HoasInterface:
 
 
 class Hoas:
-    def __init__(self, config={}):
-        self.config = config
+    def __init__(self, accounts: List[Dict[str, str]]) -> None:
         try:
-            self.accounts = [HoasInterface(account) for account in self.config]
+            self.accounts: List[HoasInterface] = [
+                HoasInterface(account) for account in accounts
+            ]
         except Exception:
-            # Todo: Use logger
-            print("Couldn't parse configs", file=sys.stderr)
+            logging.error("Couldn't parse configs")
             raise
 
-    def create_config(self):
+    def create_config(self) -> dict:
         # menu navs = asdf
-        config = {}
+        config: Dict[str, Any] = {}
         for hoas in self.accounts:
             # for stuff in
             page = bs(hoas.view_page(0), "html.parser")
@@ -109,7 +112,7 @@ class Hoas:
                 view_ids[0] = view_ids[0][0], menus[i][1]
                 print(view_ids, menus)
                 print(service_type)
-                services_dict = {}
+                services_dict: Dict[str, Dict[str, Any]] = {}
                 for name, view_id in view_ids:
                     services_dict.setdefault(name, {"reserve": {}, "view": view_id})
                     for i in range(15):
@@ -133,7 +136,9 @@ class Hoas:
 
         return config
 
-    def get_timetables(self, service: int = None, date: datetime = None, cache_time=10):
+    def get_timetables(
+        self, service: int = 0, date: datetime = None, cache_time=10
+    ) -> str:
 
         state = ("Vapaa", "Varattu", "Oma varaus")
         for account in self.accounts:
@@ -151,7 +156,7 @@ class Hoas:
             msg += left
         return msg
 
-    def get_reservations(self):
+    def get_reservations(self) -> str:
         sauna_set = set()
         for account in self.accounts:
             page = account.view_page()

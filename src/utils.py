@@ -80,9 +80,3 @@ def get_date(day, weekdays=[]):
             day += 7
     date = today + datetime.timedelta(days=day)
     return date
-
-
-if __name__ == "__main__":
-    print(datetime.datetime.today().weekday())
-    print(f"{next_weekday('thu',1).strftime('%a %d.%m')}")
-    print(f"{next_weekday('2',0).strftime('%a %d.%m')}")

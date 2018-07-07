@@ -12,6 +12,6 @@ babel = "*"
 
 [dev-packages]
 black = ">=18.6b4"
-
+mypy = "*"
  [pipenv]
  allow_prereleases = true

@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import re
 import itertools
 import datetime
@@ -10,7 +12,7 @@ class Reservation(namedtuple("Reservation", "start end where info")):
         return f"{self.start:%a %d.%m.%Y from %H:%M} to {self.end:%H:%M} in {self.where} {self.info}"
 
 
-def get_users_reservations(soup) -> (list, list, list):
+def get_users_reservations(soup) -> Tuple[list, list, list]:
     """Find users reservations from Beautiful soup object"""
     res = soup.find(class_="myReservations").find_all("a")
     common_saunas = []
@@ -20,7 +22,6 @@ def get_users_reservations(soup) -> (list, list, list):
         link = r.get("href")
         type_ = r.get("class")
 
-        text = r.text
         if link:
             # This is user made reservation
             reservation = parse_users_reservations(r)
@@ -32,43 +33,29 @@ def get_users_reservations(soup) -> (list, list, list):
                 saunas.append(reservation)
         else:
             # This is a Common sauna, it has to be handled bit differently
-            common = parse_common_saunas(r)
+            common = parse_common_saunas(r.text)
             common_saunas.append(common)
     return saunas, common_saunas, laundry
 
 
-def parse_common_saunas(r):
-    # regs = re.compile(
-    r"""
-    \s*
-    (?P<day>\w*)
-    \s
-    (?P<start_time>\d{2}:\d{2})
-    \s\u2013\s
-    #(?P<end_time>\d{2}:\d{2})
-    \s*-\n*
-    (?P<where>.*)
-    \t*-\n
-    """  # , re.MULTILINE | re.VERBOSE | re.UNICODE)
-    text = r.text
-
-    # replace " {EN DASH} " with dash so that time range will be "%h-%h"
-    text = text.replace(" " + chr(0x2013) + " ", "-")
+def parse_common_saunas(text: str):
+    # Normalize time range
+    text = text.replace(" \N{EN DASH} ", "-")
 
     # Split datetime, location and info
-    sauna = [it.strip() for it in text.split("-\n")]
+    dt_range, location, info = [it.strip() for it in text.split("-\n")]
 
     # Split date and time
-    sauna = sauna.pop(0).split(" ") + sauna
+    date, time = dt_range.split(" ")
 
-    start_time, end_time = sauna[1].split("-")
-    return dict(
-        weekday=(sauna[0][:-3]),
-        where=sauna[2],
-        info=sauna[3],
-        start_time=start_time,
-        end_time=end_time,
-    )
+    start_time, end_time = time.split("-")
+    return {
+        "weekday": (date[:-3]),
+        "where": location,
+        "info": info,
+        "start_time": start_time,
+        "end_time": end_time,
+    }
 
 
 def parse_users_reservations(r):

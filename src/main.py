@@ -1,3 +1,5 @@
+from typing import List, Dict
+
 import logging
 import asyncio
 import argparse
@@ -15,6 +17,7 @@ import hoas
 from userconfigs import UserConfigs
 from dbhelper import DBHelper
 from utils import Commands, get_date
+from reservation import SaunaId
 
 
 class SaunaBotCommands(Commands):
@@ -44,7 +47,7 @@ class SaunaBotCommands(Commands):
         ]
 
         date = get_date(0)
-        sauna_id = sauna_ids["h"]["view"]
+        sauna_id = sauna_ids["h"].view_id
 
         if len(args) > 2:
             return "Invalid arguments"
@@ -55,8 +58,8 @@ class SaunaBotCommands(Commands):
                 date = get_date(int(arg))
             elif len(arg) == 1 and arg.isalpha():
                 try:
-                    sauna_id = sauna_ids[arg]["view"]
-                except Exception as e:
+                    sauna_id = sauna_ids[arg].view_id
+                except KeyError:
                     return "Invalid sauna"
 
             elif arg in weekdays:
@@ -105,15 +108,16 @@ def load_config():
     return config
 
 
-def get_sauna_ids(sauna_configs):
+def get_sauna_ids(sauna_configs) -> Dict[str, SaunaId]:
     sauna_ids = {}
     for sauna in sauna_configs["saunavuorot"]:
         check = re.compile("^Sauna \d, (?P<letter>[A-Z])-talo$")
         match = check.match(sauna)
+        assert match, "Invalid page from HOAS system"
         letter = match.group("letter").lower()
         reserve_id = sauna_configs["saunavuorot"][sauna]["reserve"][sauna]
         view_id = sauna_configs["saunavuorot"][sauna]["view"]
-        sauna_ids[letter] = {"view": view_id, "reserve": reserve_id}
+        sauna_ids[letter] = SaunaId(view_id, reserve_id)
     return sauna_ids
 
 

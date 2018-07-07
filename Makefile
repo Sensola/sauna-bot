@@ -11,6 +11,13 @@ default:
 run:
 	pipenv run -- python src/main.py
 
+.PHONY: precommit
+precommit: format typecheck
+
+.PHONY: typecheck
+typecheck:
+	pipenv run -- mypy --ignore-missing-imports --strict-optional src/
+
 .PHONY: format
 format:
 	pipenv run -- black --py36 src/
