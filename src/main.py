@@ -170,4 +170,8 @@ if __name__ == "__main__":
     bot = tg.SensolaBot(token, commands)
     task = loop.create_task(MessageLoop(bot, handle=bot.handle).run_forever())
     logging.info("Listening...")
-    loop.run_forever()
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        print("Bye")
+
