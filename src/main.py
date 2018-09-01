@@ -3,23 +3,16 @@ from typing import List, Dict
 import logging
 import asyncio
 import argparse
-from contextlib import suppress
 from os import path
-from functools import wraps
-import re
 
 from telepot.aio.loop import MessageLoop
 import yaml
-from babel import Locale
 
 import tg
 import hoas
-from userconfigs import UserConfigs
-from dbhelper import DBHelper
-from utils import Commands, get_date
-from reservation import SaunaId
-from saunaconfigs import load_config, get_sauna_ids 
-from saunacommands import SaunaBotCommands
+from . dbhelper import DBHelper
+from . saunaconfigs import load_config, get_sauna_ids
+from . saunacommands import SaunaBotCommands
 
 
 if __name__ == "__main__":
