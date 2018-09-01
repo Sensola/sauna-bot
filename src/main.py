@@ -10,9 +10,9 @@ import yaml
 
 import tg
 import hoas
-from . dbhelper import DBHelper
-from . saunaconfigs import load_config, get_sauna_ids
-from . saunacommands import SaunaBotCommands
+from .dbhelper import DBHelper
+from .saunaconfigs import load_config, get_sauna_ids
+from .saunacommands import SaunaBotCommands
 
 
 if __name__ == "__main__":
@@ -68,4 +68,3 @@ if __name__ == "__main__":
         loop.run_forever()
     except KeyboardInterrupt:
         print("Bye")
-
