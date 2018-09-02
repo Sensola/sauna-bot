@@ -9,6 +9,7 @@ telepot = "*"
 pyyaml = "*"
 requests = "*"
 babel = "*"
+docopt = "*"
 
 [dev-packages]
 black = ">=18.6b4"

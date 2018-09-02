@@ -1,4 +1,18 @@
-from typing import List, Dict
+"""Sauna-bot.
+
+Telegram bot for reserving saunas and stuff
+
+usage:
+  main.py (-h | --help)
+  main.py --create-config
+  main.py (-d  | --debug ) [<debuglevel>]
+  main.py
+
+Options:
+  -h, --help       Show this help message and exit
+  --create-config  Find view and reservation ids from hoas site. Makes
+                   multiple requests to site
+"""
 
 import logging
 import asyncio
@@ -7,32 +21,24 @@ from os import path
 
 from telepot.aio.loop import MessageLoop
 import yaml
+from docopt import docopt
 
 import tg
 import hoas
-from .dbhelper import DBHelper
-from .saunaconfigs import load_config, get_sauna_ids
-from .saunacommands import SaunaBotCommands
+from dbhelper import DBHelper
+from saunaconfigs import load_config, get_sauna_ids
+from saunacommands import SaunaBotCommands
 
 
 if __name__ == "__main__":
+    print("Hello world")
     logging.basicConfig(
         format="%(asctime)s %(levelname)s:%(message)s",
         datefmt="%d/%m/%Y %H:%M:%S",
         level=logging.INFO,
     )
-
-    parser = argparse.ArgumentParser(
-        description="Telegram bot for reserving saunas and stuff"
-    )
-    parser.add_argument(
-        "--create-config",
-        action="store_true",
-        help="Find view and reservation ids from hoas site. "
-        "Makes multiple requests to site",
-    )
-
-    args = parser.parse_args()
+    args = docopt(__doc__, version="Sauna-bot 0.0.1")
+    print(args)
     config = load_config()
     if not config or config.get("token") is None or config.get("accounts") is None:
         raise SystemExit(
@@ -43,7 +49,7 @@ if __name__ == "__main__":
 
     hoas_api = hoas.Hoas(config["accounts"])
     DBHelper().setup()
-    if args.create_config or not path.exists("sauna_configs.yaml"):
+    if args.get("--create_config") or not path.exists("sauna_configs.yaml"):
         sauna_configs = hoas_api.create_config()
         with open("sauna_configs.yaml", "w") as f:
             yaml.dump(sauna_configs, f, default_flow_style=False)
