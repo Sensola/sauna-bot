@@ -26,6 +26,7 @@ from docopt import docopt
 import tg
 import hoas
 from dbhelper import DBHelper
+import utils
 from saunaconfigs import load_config, get_sauna_ids
 from saunacommands import SaunaBotCommands
 
@@ -38,8 +39,8 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
     args = docopt(__doc__, version="Sauna-bot 0.0.1")
-    print(args)
-    config = load_config()
+    config = utils.get_hoas_credentials()
+
     if not config or config.get("token") is None or config.get("accounts") is None:
         raise SystemExit(
             "You should have 'config.yaml' file to give hoas "

@@ -1,4 +1,7 @@
 import datetime
+import yaml
+import getpass
+
 from functools import partial
 from inspect import cleandoc
 
@@ -72,6 +75,10 @@ class Commands:
         return msg
 
 
+class ConfigurationError(Exception):
+    pass
+
+
 def get_date(day, weekdays=[]):
     today = datetime.date.today()
     current_weekday = today.weekday()
@@ -82,3 +89,33 @@ def get_date(day, weekdays=[]):
             day += 7
     date = today + datetime.timedelta(days=day)
     return date
+
+
+def get_hoas_credentials():
+    positive = ("y", "yes")
+    config = {}
+    try:
+        with open("config.yaml", "r") as f:
+            config = yaml.load(f)
+    except IOError as e:
+        import os
+        import sys
+
+        if os.isatty(0):
+            username = input("Username: ")
+            password = getpass.getpass("Password: ")
+            token = input("Telegram token: ")
+            config = {
+                "accounts": [{"username": username, "password": password}],
+                "token": token,
+            }
+            if input("Save for later use? y/n ") in positive:
+                with open("config.yaml", "w") as f:
+                    f.write(yaml.dump(config, default_flow_style=False))
+            print("You can edit config.yaml to change credentials or add more accounts")
+        else:
+            raise ConfigurationError(
+                "You should create config.yaml to add configs.\n"
+                "See config.example.yaml"
+            )
+    return config
