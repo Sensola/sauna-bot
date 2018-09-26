@@ -7,8 +7,10 @@ class Commands:
     """
     Class for creating command interfaces.
     Used by subclassing Commands and defining functions.
+
     >> commands = Commands()
     >> commands["help"] is commands.help
+
     defines function help(cmd="") which returns docstring for function 'cmd'
     if given or helptext that lists defined functions
     """

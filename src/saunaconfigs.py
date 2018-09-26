@@ -3,6 +3,7 @@ from typing import List, Dict
 import re
 from reservation import SaunaId
 
+
 def load_config():
     config = {}
     try:
@@ -24,4 +25,3 @@ def get_sauna_ids(sauna_configs) -> Dict[str, SaunaId]:
         view_id = sauna_configs["saunavuorot"][sauna]["view"]
         sauna_ids[letter] = SaunaId(view_id, reserve_id)
     return sauna_ids
-
