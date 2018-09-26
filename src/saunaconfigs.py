@@ -2,7 +2,6 @@ import yaml
 from typing import List, Dict
 import re
 from reservation import SaunaId
-from utils import Commands
 
 def load_config():
     config = {}
