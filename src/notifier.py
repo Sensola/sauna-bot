@@ -1,42 +1,6 @@
 from datetime import datetime
 import asyncio
 
-class Notifier:
-    """Handler for managing callbacks"""
-
-    def __init__(self, loop):
-        self.loop = loop
-        self.active = {}
-
-    def schedule(self, id, when, callback):
-        """Schedule new call to :callback: at :when: and save it under :id:"""
-        now = datetime.now().timestamp()
-        delay = when.timestamp() - now
-
-        def callback_with_remove():
-            callback()
-            del self.active[id][when]
-
-        print(f"Delay: {delay}")
-        future = self.loop.call_later(delay, callback_with_remove)
-
-        self.active.setdefault(id, {})
-        self.active[id].setdefault(when, [])
-        self.active[id][when].append(future)
-
-    def view_notifications(id):
-        notifs = self.active.get(id)
-        return list(notifs) if notifs else {}
-
-    def cancel(id, when):
-        for x in self.active.get(id, {}).get(when, ()):
-            if x:
-                x.cancel()
-        try:
-            del self.active[id][when]
-        except Exception:
-            logger.log("")
-
 
 async def poller(func, args = [], sleep=10 * 60, limit=0, call_limit=0):
     """ Call :func: every :sleep: seconds and if result is different than 
@@ -62,4 +26,83 @@ async def poller(func, args = [], sleep=10 * 60, limit=0, call_limit=0):
         await asyncio.sleep(sleep)
         if (limit > 0 and yielded > limit) or (call_limit > 0 and calls > call_limit):
             break
+
+class StreamDivider:
+    """Helper class for getting updates from one coroutine source to multiple"""
+    def __init__(self, stream):
+        self.stream = stream
+        
+        self.subcriptions = []
+
+    async def run(self):
+        """Coroutine that feeds results from coroutine to subscriptions"""
+        
+        if self.running == True:
+            raise Exception("SubManager was running already")
+        self.running = True
+
+        while self.running:
+            async for update in self.stream:
+                for sub in self.subcriptions:
+                    sub.append(result)
+    
+    async def wait_for_updates(self, amount=0):
+        """Async iterator for getting updates"""
+        # TODO: Somehow get this to remove the deque
+        # after not needed
+
+        deque = collections.deque
+        self.subscriptions.append(deque)
+
+        messages_done = 0
+        while amount > messages_done or amount == 0:
+            for update in deque:
+                yield update
+                messages_done += 1
+    
+
+async def main():
+    man = SubscriptionManager(
+        if_changed(
+            poller(hoas.get_reservations())
+        )
+    )
+
+
+
+        
+def command(msg_id):
+    subscribe(msg_id)
+    
+async def filter_repeating(iterable, key=(lambda x, y: x ==  y)):
+    previous = object()
+    async for item in iterable:
+        if key(item, previous):
+            continue
+        previous = item
+        yield item
+
+
+class Notifier:
+    def __init__(self, stream):
+        self.loop = asyncio.get_event_loop()
+        self.sd = StreamDivider(stream) # filter_repeating(poller(func))
+        self.subscriptions = {}
+
+    def subscribe(sub_id, coroutine_callback, limit=0):
+        """Create new task which awaits new coro from :coroutine_callback: and save those for cancellation"""
+        
+        async def new_coro():
+            async for update in self.sd.wait_for_update(limit):
+                await coroutine_function(update)
+
+        coro = new_coro()
+        self.subscriptions[sub_id] = coro
+        self.loop.create_task(new_coro())
+    
+    def cancel(self, sub_id):
+        task = self.subscriptions.get(sub_id)
+        task.cancel()
+
+        del self.subscriptions[sub_id]
 
