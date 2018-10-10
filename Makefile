@@ -21,3 +21,7 @@ typecheck:
 .PHONY: format
 format:
 	pipenv run -- black --py36 src/
+
+.PHONY: test 
+test:
+	pipenv run -- python -m pytest 
