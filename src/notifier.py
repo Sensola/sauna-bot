@@ -1,5 +1,5 @@
 from datetime import datetime
-
+import asyncio
 
 class Notifier:
     """Handler for managing callbacks"""
@@ -38,19 +38,28 @@ class Notifier:
             logger.log("")
 
 
-async def poller(func, callback, sleep=10 * 60):
+async def poller(func, args = [], sleep=10 * 60, limit=0, call_limit=0):
     """ Call :func: every :sleep: seconds and if result is different than 
-        previously, call callback with changed items"""
-    previous = []
+        previously, yield result"""
+        
+    loop = asyncio.get_event_loop()
+    yielded = 0
+    calls = 0
+
+    previous = object()
     while True:
-        await asyncio.sleep(sleep)  # Sleep 10 mins
-        new = func()
-        for item in new:
-            if item in previous:
-                continue
-            await asyncio.sleep(0)
-            for user in subscriptions:
-                id = user["id"]
-                time = user.notif_time
-                callback(id, time, callback)
-                await asyncio.sleep(0)
+        new_result = await loop.run_in_executor(
+            None, func, *args, 
+        )
+
+        if new_result != previous:
+            yield new_result
+            yielded += 1
+
+            previous = new_result
+        calls += 1
+
+        await asyncio.sleep(sleep)
+        if (limit > 0 and yielded > limit) or (call_limit > 0 and calls > call_limit):
+            break
+
