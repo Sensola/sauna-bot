@@ -32,13 +32,13 @@ from saunacommands import SaunaBotCommands
 
 
 if __name__ == "__main__":
-    print("Hello world")
     logging.basicConfig(
         format="%(asctime)s %(levelname)s:%(message)s",
         datefmt="%d/%m/%Y %H:%M:%S",
         level=logging.INFO,
     )
     args = docopt(__doc__, version="Sauna-bot 0.0.1")
+
     config = utils.get_hoas_credentials()
 
     if not config or config.get("token") is None or config.get("accounts") is None:
