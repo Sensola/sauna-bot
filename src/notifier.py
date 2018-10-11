@@ -1,30 +1,29 @@
-from datetime import datetime
 import asyncio
+import collections
+from contextlib import contextmanager
+from datetime import datetime
 
 
-async def poller(func, args = [], sleep=10 * 60, limit=0, call_limit=0):
-    """ Call :func: every :sleep: seconds and if result is different than 
-        previously, yield result"""
+DEFAULT = object()
+
+
+async def poller(func, args = [], sleep=10 * 60, limit=0,):
+    """ Call :func: every :sleep: seconds and yield result"""
         
     loop = asyncio.get_event_loop()
     yielded = 0
     calls = 0
 
-    previous = object()
     while True:
         new_result = await loop.run_in_executor(
             None, func, *args, 
         )
 
-        if new_result != previous:
-            yield new_result
-            yielded += 1
-
-            previous = new_result
-        calls += 1
+        yield new_result
+        yielded += 1
 
         await asyncio.sleep(sleep)
-        if (limit > 0 and yielded > limit) or (call_limit > 0 and calls > call_limit):
+        if (limit > 0 and yielded > limit): 
             break
 
 class StreamDivider:
