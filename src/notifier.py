@@ -27,52 +27,42 @@ async def poller(func, args=[], sleep=10 * 60, limit=0):
 
 class StreamDivider:
     """Helper class for getting updates from one coroutine source to multiple"""
+
     def __init__(self, stream):
         self.stream = stream
-        
-        self.subcriptions = []
+        self.finished = False
+        self.subscriptions = []
 
     async def run(self):
-        """Coroutine that feeds results from coroutine to subscriptions"""
-        
-        if self.running == True:
-            raise Exception("SubManager was running already")
-        self.running = True
+        """Coroutine that feeds results from stream to subscriptions"""
+        async for update in self.stream:
+            for sub in self.subscriptions:
+                sub.append(update)
+        self.finished = True
 
-        while self.running:
-            async for update in self.stream:
-                for sub in self.subcriptions:
-                    sub.append(result)
-    
     async def wait_for_updates(self, amount=0):
         """Async iterator for getting updates"""
         # TODO: Somehow get this to remove the deque
         # after not needed
 
-        deque = collections.deque
+        deque = collections.deque()
         self.subscriptions.append(deque)
 
         messages_done = 0
         while amount > messages_done or amount == 0:
-            for update in deque:
+
+            try:
+                update = deque.popleft()
                 yield update
                 messages_done += 1
-    
-
-async def main():
-    man = SubscriptionManager(
-        if_changed(
-            poller(hoas.get_reservations())
-        )
-    )
+            except IndexError:
+                if self.finished:
+                    break
+            await asyncio.sleep(0)
+        self.subscriptions.remove(deque)
 
 
-
-        
-def command(msg_id):
-    subscribe(msg_id)
-    
-async def filter_repeating(iterable, key=(lambda x, y: x ==  y)):
+async def filter_repeating(iterable, key=(lambda x, y: x == y)):
     previous = object()
     async for item in iterable:
         if key(item, previous):
@@ -84,23 +74,23 @@ async def filter_repeating(iterable, key=(lambda x, y: x ==  y)):
 class Notifier:
     def __init__(self, stream):
         self.loop = asyncio.get_event_loop()
-        self.sd = StreamDivider(stream) # filter_repeating(poller(func))
+        self.sd = StreamDivider(stream)  # filter_repeating(poller(func))
         self.subscriptions = {}
 
     def subscribe(sub_id, coroutine_callback, limit=0):
         """Create new task which awaits new coro from :coroutine_callback: and save those for cancellation"""
-        
+
         async def new_coro():
-            async for update in self.sd.wait_for_update(limit):
-                await coroutine_function(update)
+            with self.sd.subscribe as stream:
+                async for update in stream(limit):
+                    await coroutine_callback(update)
 
         coro = new_coro()
         self.subscriptions[sub_id] = coro
         self.loop.create_task(new_coro())
-    
+
     def cancel(self, sub_id):
         task = self.subscriptions.get(sub_id)
         task.cancel()
 
         del self.subscriptions[sub_id]
-
