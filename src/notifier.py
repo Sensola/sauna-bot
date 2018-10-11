@@ -7,24 +7,23 @@ from datetime import datetime
 DEFAULT = object()
 
 
-async def poller(func, args = [], sleep=10 * 60, limit=0,):
+async def poller(func, args=[], sleep=10 * 60, limit=0):
     """ Call :func: every :sleep: seconds and yield result"""
-        
+
     loop = asyncio.get_event_loop()
     yielded = 0
     calls = 0
 
     while True:
-        new_result = await loop.run_in_executor(
-            None, func, *args, 
-        )
+        new_result = await loop.run_in_executor(None, func, *args)
 
         yield new_result
         yielded += 1
 
         await asyncio.sleep(sleep)
-        if (limit > 0 and yielded > limit): 
+        if limit > 0 and yielded > limit:
             break
+
 
 class StreamDivider:
     """Helper class for getting updates from one coroutine source to multiple"""
