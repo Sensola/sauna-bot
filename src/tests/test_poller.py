@@ -2,10 +2,8 @@ import pytest
 import asyncio
 from .. import notifier as notifier
 
-import time
-from collections import namedtuple
+from .utils import CallRecorder
 
-CallRecord = namedtuple("CallRecord", ("time", "args", "kwargs"))
 
 DEFAULT = object()
 
@@ -20,14 +18,6 @@ async def test_poller_yield():
         if x == items[-1]:
             break
     assert results == items
-
-
-class CallRecorder:
-    def __init__(self):
-        self.call_history = []
-
-    def __call__(self, *args, **kwargs):
-        self.call_history.append(CallRecord(time.time(), args, kwargs))
 
 
 @pytest.mark.asyncio
