@@ -78,25 +78,31 @@ async def filter_repeating(iterable, key=(lambda x, y: x == y)):
 
 
 class Notifier:
-    def __init__(self, stream):
-        self.loop = asyncio.get_event_loop()
-        self.sd = StreamDivider(stream)  # filter_repeating(poller(func))
-        self.subscriptions = {}
+    def __init__(self, stream, loop=None):
+        if not loop:
+            loop = asyncio.get_event_loop()
 
-    def subscribe(sub_id, coroutine_callback, limit=0):
+        self.loop = loop
+        self.sd = StreamDivider(stream)
+        self.subscriptions = {}
+        self.loop.create_task(self.sd.run())
+
+    async def _new_coro(self, coroutine_callback, limit=0):
+        async for update in self.sd.wait_for_updates(limit):
+            await coroutine_callback(update)
+
+    def subscribe(self, sub_id, coroutine_callback, limit=0):
         """Create new task which awaits new coro from :coroutine_callback: and save those for cancellation"""
 
-        async def new_coro():
-            with self.sd.subscribe as stream:
-                async for update in stream(limit):
-                    await coroutine_callback(update)
+        coro = self._new_coro(coroutine_callback, limit)
+        task = self.loop.create_task(coro)
+        
+        self.subscriptions[sub_id] = task
 
-        coro = new_coro()
-        self.subscriptions[sub_id] = coro
-        self.loop.create_task(new_coro())
+    def unsubscribe(self, sub_id):
+        task = self.subscriptions.get(sub_id, None)
+        if not task:
+            raise KeyError("No such subscription")
 
-    def cancel(self, sub_id):
-        task = self.subscriptions.get(sub_id)
         task.cancel()
-
         del self.subscriptions[sub_id]
