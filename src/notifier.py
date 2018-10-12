@@ -42,24 +42,30 @@ class StreamDivider:
 
     async def wait_for_updates(self, amount=0):
         """Async iterator for getting updates"""
-        # TODO: Somehow get this to remove the deque
-        # after not needed
 
         deque = collections.deque()
         self.subscriptions.append(deque)
 
         messages_done = 0
-        while amount > messages_done or amount == 0:
+        try:
+            while amount > messages_done or amount == 0:
+                try:
+                    update = deque.popleft()
+                    yield update
+                    messages_done += 1
+                except IndexError:
+                    if self.finished:
+                        break
+                await asyncio.sleep(0)
+        finally:
+            # Removes the correct deque from the list. Finishes quickly enough.
+            # Better way would be to use some other datastructure, 
+            # subs.remove(deque) just removes first empty deque 
+            
+            for i, val in enumerate(self.subscriptions):
+                if val is deque:
+                    self.subscriptions.pop(i)
 
-            try:
-                update = deque.popleft()
-                yield update
-                messages_done += 1
-            except IndexError:
-                if self.finished:
-                    break
-            await asyncio.sleep(0)
-        self.subscriptions.remove(deque)
 
 
 async def filter_repeating(iterable, key=(lambda x, y: x == y)):
