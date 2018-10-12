@@ -59,13 +59,12 @@ class StreamDivider:
                 await asyncio.sleep(0)
         finally:
             # Removes the correct deque from the list. Finishes quickly enough.
-            # Better way would be to use some other datastructure, 
-            # subs.remove(deque) just removes first empty deque 
-            
+            # Better way would be to use some other datastructure,
+            # subs.remove(deque) just removes first empty deque
+
             for i, val in enumerate(self.subscriptions):
                 if val is deque:
                     self.subscriptions.pop(i)
-
 
 
 async def filter_repeating(iterable, key=(lambda x, y: x == y)):
@@ -96,7 +95,7 @@ class Notifier:
 
         coro = self._new_coro(coroutine_callback, limit)
         task = self.loop.create_task(coro)
-        
+
         self.subscriptions[sub_id] = task
 
     def unsubscribe(self, sub_id):

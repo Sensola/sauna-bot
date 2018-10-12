@@ -13,15 +13,15 @@ class CallRecorder:
 
     def __call__(self, *args, **kwargs):
         self.call_history.append(CallRecord(time.time(), args, kwargs))
-        
+
 
 class AwaitRecorder:
     def __init__(self):
         self.call_history = []
-    
+
     async def __call__(self, *args, **kwargs):
         self.call_history.append(CallRecord(time.time(), args, kwargs))
-        
+
 
 async def yield_tester(source, expected, results):
     result = []
@@ -36,11 +36,12 @@ async def it2async(it):
         yield item
 
 
-class YieldPauser():
+class YieldPauser:
     def __init__(self, source):
-        self.source=source
+        self.source = source
         self.yield_next = False
         self.done = False
+
     async def __anext__(self):
         try:
             while not self.yield_next:
@@ -56,7 +57,7 @@ class YieldPauser():
 
     def __aiter__(self):
         return self
-    
+
     async def next(self):
         if self.done:
             raise Exception("Iterator was exhausted")
@@ -64,6 +65,6 @@ class YieldPauser():
         while self.yield_next:
             await asyncio.sleep(0)
 
+
 def pause_generator(source):
     return YieldPauser(source)
-    
