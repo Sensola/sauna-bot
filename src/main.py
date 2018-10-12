@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     token = config["token"]
 
-    commands = SaunaBotCommands("/")
+    commands = SaunaBotCommands(hoas_api, sauna_ids, "/")
     bot = tg.SensolaBot(token, commands)
     task = loop.create_task(MessageLoop(bot, handle=bot.handle).run_forever())
     logging.info("Listening...")

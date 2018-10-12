@@ -1,11 +1,18 @@
-
-from utils import Commands
 from functools import wraps
+
+from babel import Locale
+
+from utils import Commands, get_date
 from userconfigs import UserConfigs
 from dbhelper import DBHelper
+from reservation import SaunaId
 
 
 class SaunaBotCommands(Commands):
+    def __init__(self, hoas, sauna_ids, predicate="/"):
+        self.hoas_api = hoas
+        self.predicate = predicate
+        self.sauna_ids = sauna_ids
     @wraps(Commands.help)
     def help(self, chat_id, cmd="", *, fail=""):
         return super().help(cmd, fail=fail)
@@ -32,7 +39,7 @@ class SaunaBotCommands(Commands):
         ]
 
         date = get_date(0)
-        sauna_id = sauna_ids["h"].view_id
+        sauna_id = self.sauna_ids["h"].view_id
 
         if len(args) > 2:
             return "Invalid arguments"
@@ -43,7 +50,7 @@ class SaunaBotCommands(Commands):
                 date = get_date(int(arg))
             elif len(arg) == 1 and arg.isalpha():
                 try:
-                    sauna_id = sauna_ids[arg].view_id
+                    sauna_id = self.sauna_ids[arg].view_id
                 except KeyError:
                     return "Invalid sauna"
 
@@ -55,13 +62,13 @@ class SaunaBotCommands(Commands):
         return "\n".join(
             (
                 date.strftime("%a %d.%m"),
-                hoas_api.get_timetables(service=sauna_id, date=date),
+                self.hoas_api.get_timetables(service=sauna_id, date=date),
             )
         )
 
     def show(self, *args, **kwargs):
         """Return reserved saunas"""
-        return hoas_api.get_reservations()
+        return self.hoas_api.get_reservations()
 
     def config(self, chat_id, *args, **kwargs):
         """User configuration manager.
