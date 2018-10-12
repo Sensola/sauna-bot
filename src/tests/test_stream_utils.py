@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from ..notifier import poller, filter_repeating, StreamDivider
+from ..stream_utils import poller, filter_repeating, StreamDivider
 from .utils import it2async, yield_tester
 
 

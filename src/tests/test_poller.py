@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from .. import notifier as notifier
+from ..stream_utils import poller
 
 from .utils import CallRecorder
 
@@ -11,9 +11,9 @@ DEFAULT = object()
 @pytest.mark.asyncio
 async def test_poller_yield():
     items = [1, 2, 3, 4]
-    poller = notifier.poller(iter(items).__next__, sleep=0)
+    poll = poller(iter(items).__next__, sleep=0)
     results = []
-    async for x in poller:
+    async for x in poll:
         results.append(x)
         if x == items[-1]:
             break
@@ -24,8 +24,8 @@ async def test_poller_yield():
 async def test_poller_delay():
     sleep = 1
     rec = CallRecorder()
-    poller = notifier.poller(rec, sleep=sleep, limit=3)
-    async for item in poller:
+    poll = poller(rec, sleep=sleep, limit=3)
+    async for item in poll:
         pass
 
     it = iter(rec.call_history)
