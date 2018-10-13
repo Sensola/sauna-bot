@@ -142,15 +142,13 @@ class Hoas:
         self, service: int = 0, date: datetime = None, cache_time=10
     ) -> str:
 
-        state = ("Vapaa", "Varattu", "Oma varaus")
-        msg = ""
+        timetables = []
         for account in self.accounts:
             page = account.view_page(service=service, date=date)
             soup = bs(page, "html.parser")
             topics, cal, left = hoasparser.parse_calendar(soup)
-            width = max(*map(len, topics), *map(len, state))
-            msg += templates.format_timetable(topics, cal, state)
-        return msg
+            timetables.append((topics, cal, left))
+        return timetables
 
     def get_reservations(self) -> str:
         sauna_set = set()
@@ -160,7 +158,7 @@ class Hoas:
             (saunas, common_saunas, laundry) = hoasparser.get_users_reservations(soup)
             for sauna in saunas:
                 sauna_set.add(sauna)
-        return templates.format_reservations(sorted(sauna_set))
+        return sorted(sauna_set)
 
     def reserve(self):
         raise NotImplementedError

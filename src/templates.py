@@ -2,7 +2,7 @@ def format_reservations(reservations):
     return "Reserved saunas:\n {}".format("\n".join(str(x) for x in reservations))
 
 
-def format_timetable(topics, cal, state):
+def format_timetable(topics, cal, left, state):
     state = ("Vapaa", "Varattu", "Oma varaus")
     column_width = max(len(x) for x in (*topics, *state))
     columns = len(topics)
@@ -10,6 +10,6 @@ def format_timetable(topics, cal, state):
     rows = [temp.format(*topics)]
     for time, *items in cal:
         rows.append(temp.format(time, *(state[r[0]] for r in items)))
-
+    rows.append(left)
     final = "\n".join(rows)
     return final

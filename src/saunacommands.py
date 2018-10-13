@@ -2,6 +2,7 @@ from functools import wraps
 
 from babel import Locale
 
+import templates
 from utils import Commands, get_date
 from userconfigs import UserConfigs
 from dbhelper import DBHelper
@@ -59,17 +60,17 @@ class SaunaBotCommands(Commands):
                 date = get_date(arg, weekdays)
             else:
                 return "Invalid arguments"
-
-        return "\n".join(
-            (
-                date.strftime("%a %d.%m"),
-                self.hoas_api.get_timetables(service=sauna_id, date=date),
-            )
-        )
+        timetables =  self.hoas_api.get_timetables(service=sauna_id, date=date)
+        state = ("Vapaa", "Varattu", "Oma varaus")
+        parts = []
+        for item in timetables:
+            parts.append(templates.format_timetable(*item, state))
+        return "\n".join((date.strftime("%a %d.%m"), *parts))
 
     def show(self, *args, **kwargs):
         """Return reserved saunas"""
-        return self.hoas_api.get_reservations()
+        reservations = self.hoas_api.get_reservations()
+        return templates.format_reservations(reservations)
 
     def config(self, chat_id, *args, **kwargs):
         """User configuration manager.
