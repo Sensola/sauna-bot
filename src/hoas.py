@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup as bs
 
 import hoasparser
 
+import templates
+
 
 class AuthException(Exception):
     """Authentication failed."""
@@ -141,19 +143,13 @@ class Hoas:
     ) -> str:
 
         state = ("Vapaa", "Varattu", "Oma varaus")
+        msg = ""
         for account in self.accounts:
             page = account.view_page(service=service, date=date)
             soup = bs(page, "html.parser")
             topics, cal, left = hoasparser.parse_calendar(soup)
             width = max(*map(len, topics), *map(len, state))
-
-            msg = ((f"{{:{width}}}" * len(topics)).format(*topics)) + "\n"
-            for row in cal:
-                time, *items = row
-                msg += (f"{{:{width}}}" * len(row)).format(
-                    time, *(state[r[0]] for r in items)
-                ) + "\n"
-            msg += left
+            msg += templates.format_timetable(topics, cal, state)
         return msg
 
     def get_reservations(self) -> str:
@@ -164,10 +160,7 @@ class Hoas:
             (saunas, common_saunas, laundry) = hoasparser.get_users_reservations(soup)
             for sauna in saunas:
                 sauna_set.add(sauna)
-        msg = "Reservations:\n"
-        for sauna in sorted(sauna_set):
-            msg += str(sauna) + "\n"
-        return msg
+        return templates.format_reservations(sorted(sauna_set))
 
     def reserve(self):
         raise NotImplementedError

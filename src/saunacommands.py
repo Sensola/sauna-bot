@@ -13,6 +13,7 @@ class SaunaBotCommands(Commands):
         self.hoas_api = hoas
         self.predicate = predicate
         self.sauna_ids = sauna_ids
+
     @wraps(Commands.help)
     def help(self, chat_id, cmd="", *, fail=""):
         return super().help(cmd, fail=fail)
