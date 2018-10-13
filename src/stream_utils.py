@@ -4,10 +4,10 @@ from contextlib import contextmanager
 from datetime import datetime
 
 
-async def poller(func, args=[], sleep=10 * 60, limit=0):
+async def poller(func, args=[], sleep=10 * 60, limit=0, loop=None):
     """ Call :func: every :sleep: seconds and yield result"""
-
-    loop = asyncio.get_event_loop()
+    if not loop:
+        loop = asyncio.get_event_loop()
     yielded = 0
     calls = 0
 

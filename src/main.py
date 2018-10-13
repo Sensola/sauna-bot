@@ -29,8 +29,36 @@ from dbhelper import DBHelper
 import utils
 from saunaconfigs import load_config, get_sauna_ids
 from saunacommands import SaunaBotCommands
+from stream_utils import poller, filter_repeating
 
+def sauna_diff(previous, new):
 
+    reserved = []
+    cancelled = []
+
+    for item in previous:
+        if item not in new:
+            cancelled.append(item)
+
+    for item in new:
+        if item not in previous:
+            reserved.append(item)
+    return reserved, cancelled
+
+def format_diff(reserved, cancelled):
+    message = ""
+    if reserved:
+        message += "\nReserved:\n" + "\n".join(str(sauna) for sauna in reserved)
+    if cancelled:
+        message += "\nCancelled:\n" + "\n".join(str(sauna) for sauna in cancelled)
+    return message
+    
+
+async def print_results(stream):
+    previous = []
+    async for saunas in stream:
+        print(format_diff(*sauna_diff(previous, saunas)))
+        previous = saunas
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s %(levelname)s:%(message)s",
@@ -64,7 +92,8 @@ if __name__ == "__main__":
 
     loop = asyncio.get_event_loop()
     loop.set_debug(True)
-
+    sauna_poller = filter_repeating(poller(hoas_api.get_reservations, sleep=5))
+    loop.create_task(print_results(sauna_poller))
     token = config["token"]
 
     commands = SaunaBotCommands(hoas_api, sauna_ids, "/")
