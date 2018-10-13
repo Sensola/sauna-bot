@@ -30,6 +30,8 @@ import utils
 from saunaconfigs import load_config, get_sauna_ids
 from saunacommands import SaunaBotCommands
 from stream_utils import poller, filter_repeating
+from templates import format_diff
+from notifier import Notifier
 
 def sauna_diff(previous, new):
 
@@ -45,20 +47,16 @@ def sauna_diff(previous, new):
             reserved.append(item)
     return reserved, cancelled
 
-def format_diff(reserved, cancelled):
-    message = ""
-    if reserved:
-        message += "\nReserved:\n" + "\n".join(str(sauna) for sauna in reserved)
-    if cancelled:
-        message += "\nCancelled:\n" + "\n".join(str(sauna) for sauna in cancelled)
-    return message
-    
 
-async def print_results(stream):
+async def reservation_changes(stream):
     previous = []
     async for saunas in stream:
-        print(format_diff(*sauna_diff(previous, saunas)))
+        yield format_diff(*sauna_diff(previous, saunas))
         previous = saunas
+
+async def send_to_senso( message):
+    await bot.send_message(219882470, message)
+
 if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s %(levelname)s:%(message)s",
@@ -92,13 +90,17 @@ if __name__ == "__main__":
 
     loop = asyncio.get_event_loop()
     loop.set_debug(True)
-    sauna_poller = filter_repeating(poller(hoas_api.get_reservations, sleep=5))
-    loop.create_task(print_results(sauna_poller))
-    token = config["token"]
+    sauna_poller = reservation_changes(filter_repeating(poller(hoas_api.get_reservations, sleep=5)))
 
+    notif = Notifier(sauna_poller)
+    notif.subscribe("senso", send_to_senso)
+
+    token = config["token"]
+    loop.create_task(send_to_senso("Mui.")) 
     commands = SaunaBotCommands(hoas_api, sauna_ids, "/")
     bot = tg.SensolaBot(token, commands)
     task = loop.create_task(MessageLoop(bot, handle=bot.handle).run_forever())
+    
     logging.info("Listening...")
     try:
         loop.run_forever()

@@ -13,3 +13,13 @@ def format_timetable(topics, cal, left, state):
     rows.append(left)
     final = "\n".join(rows)
     return final
+
+
+def format_diff(reserved, cancelled):
+    message = ""
+    if reserved:
+        message += "\nReserved:\n" + "\n".join(str(sauna) for sauna in reserved)
+    if cancelled:
+        message += "\nCancelled:\n" + "\n".join(str(sauna) for sauna in cancelled)
+    return message
+    

@@ -3,7 +3,7 @@ import collections
 from contextlib import contextmanager
 from datetime import datetime
 
-from .stream_utils import poller, StreamDivider, filter_repeating
+from stream_utils import poller, StreamDivider, filter_repeating
 
 DEFAULT = object()
 
