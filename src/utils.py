@@ -119,3 +119,10 @@ def get_hoas_credentials():
                 "See config.example.yaml"
             )
     return config
+
+def load_data_to_notifier(configs, notifier, bot):
+    """Add callback messages to notifier"""
+    for user_id, lang, onreserve, notify  in configs:
+        if onreserve:
+            coro_func = partial(bot.send_message, user_id)
+            notifier.subscribe(user_id, coro_func)

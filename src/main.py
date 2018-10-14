@@ -75,7 +75,9 @@ if __name__ == "__main__":
         )
 
     hoas_api = hoas.Hoas(config["accounts"])
-    DBHelper().setup()
+    db_helper = DBHelper()
+    db_helper.setup()
+
     if args.get("--create_config") or not path.exists("sauna_configs.yaml"):
         sauna_configs = hoas_api.create_config()
         with open("sauna_configs.yaml", "w") as f:
@@ -93,12 +95,14 @@ if __name__ == "__main__":
     sauna_poller = reservation_changes(filter_repeating(poller(hoas_api.get_reservations, sleep=5)))
 
     notif = Notifier(sauna_poller)
-    notif.subscribe("senso", send_to_senso)
-
     token = config["token"]
     loop.create_task(send_to_senso("Mui.")) 
     commands = SaunaBotCommands(hoas_api, sauna_ids, "/")
     bot = tg.SensolaBot(token, commands)
+    
+    user_configs = db_helper.get_all_rows()
+    utils.load_data_to_notifier(user_configs, notif, bot)
+    
     task = loop.create_task(MessageLoop(bot, handle=bot.handle).run_forever())
     
     logging.info("Listening...")
