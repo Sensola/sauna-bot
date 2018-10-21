@@ -111,7 +111,6 @@ class Hoas:
             # for stuff in
             page = bs(hoas.view_page(0), "html.parser")
             menus = hoasparser.parse_menu(page)
-            print(menus)
             for i, (service_type, view_id) in enumerate(menus):
                 config[service_type] = {}
                 page = bs(hoas.view_page(view_id), "html.parser")
@@ -119,8 +118,6 @@ class Hoas:
                 view_ids = hoasparser.parse_view_ids(page)
                 # The first viewed sites id is found in menus, but not on page
                 view_ids[0] = view_ids[0][0], menus[i][1]
-                print(view_ids, menus)
-                print(service_type)
                 services_dict: Dict[str, Dict[str, Any]] = {}
                 for name, view_id in view_ids:
                     services_dict.setdefault(name, {"reserve": {}, "view": view_id})
@@ -135,7 +132,6 @@ class Hoas:
                                 hoasparser.get_reservation_ids(soup).items(),
                             )
                         )
-                        print(services_dict)
                         if len(services_dict[name]["reserve"]) and all(
                             services_dict[name]["reserve"].values()
                         ):
