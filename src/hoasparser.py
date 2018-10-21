@@ -25,8 +25,6 @@ def get_users_reservations(soup) -> Tuple[list, list, list]:
         if link:
             # This is user made reservation
             reservation = parse_users_reservations(r)
-            # print(type_)
-            # print(json.dumps(reservation, indent=4))
             if "washer" in type_ or "dryer" in type_:
                 laundry.append(reservation)
             if "sauna" in type_:
@@ -109,7 +107,6 @@ def get_reservation_ids(soup):
 
 def parse_view_ids(soup):
     fin = []
-    print(type(soup))
     service_nav = soup.find(class_="service-nav")
     fin.append((service_nav.span.text, None))
     # TODO: do not guess
@@ -121,7 +118,6 @@ def parse_view_ids(soup):
 
 def parse_menu(soup):
     fin = []
-    print(type(soup))
     menu = soup.find(class_="menu")
     for a in menu.find_all("a"):
         view_id = a["href"].rsplit("/", 1)[-1]
@@ -144,7 +140,6 @@ def parse_calendar(soup):
         reservations_left = ""
 
     for row in cal:
-        # print(row)
         data = {}
         time, *data_cols = row.find_all("td")
         # If item inside tag is a link, it's free
@@ -162,5 +157,4 @@ def parse_calendar(soup):
                     status = 2
             this_row.append((status, info))
         final_cal.append(this_row)
-    # print(final_cal)
     return topics, final_cal, reservations_left
