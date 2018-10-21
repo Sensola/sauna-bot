@@ -28,22 +28,29 @@ class HoasInterface:
 
     def _login(self) -> None:
         """Create session for handling stuff"""
-
+        logging.info(
+            "HoasInterface: Logged in to {}".format(self.login_params["login"])
+        )
         page = self.session.post(f"{self.BASE_URL}/auth/login", data=self.login_params)
 
         # Hoas site redirects user back to login site if auth fails
         if page.url == f"{self.BASE_URL}/auth/login":
+            logging.critical(
+                "HoasInterface: Logging in to {} failed".format(
+                    self.login_params["user"]
+                )
+            )
             raise AuthException("Login failed")
 
     def get_page(self, *args: Any, **kwargs: Any) -> requests.Response:
         r = self.session.get(*args, **kwargs)
-
+        logging.debug("HoasInterface: get_page {}".format(args))
         if r.url == f"{self.BASE_URL}/auth/login":
             self._login()
             r = self.session.get(*args, **kwargs)
 
             assert r.url != f"{self.BASE_URL}/auth/login"
-
+            logging.info("HoasInterface: got page {}".format(r.url))
         r.encoding = "utf-8"
         return r
 
