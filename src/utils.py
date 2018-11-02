@@ -1,6 +1,8 @@
 import datetime
 import yaml
 import getpass
+import logging
+import sys
 
 from functools import partial
 from inspect import cleandoc
@@ -120,9 +122,30 @@ def get_hoas_credentials():
             )
     return config
 
+
 def load_data_to_notifier(configs, notifier, bot):
     """Add callback messages to notifier"""
     for user_id, lang, onreserve, notify  in configs:
         if onreserve:
             coro_func = partial(bot.send_message, user_id)
             notifier.subscribe(user_id, coro_func)
+
+
+def configure_logging(names=(), level=logging.INFO, base_level=logging.INFO):
+    formatter = logging.Formatter(
+        "%(asctime)s "
+        '%(module)s.'
+        '%(funcName)s: '
+        '%(levelname)s: '
+        '%(message)s '
+    )
+
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setFormatter(formatter)
+
+    logging.basicConfig(level=base_level, handlers=(stderr_handler,))
+
+    for name in names:
+        logger = logging.getLogger(name)
+        logger.setLevel(level)
+        logger.addHandler(stderr_handler)

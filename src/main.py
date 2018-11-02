@@ -6,12 +6,14 @@ usage:
   main.py (-h | --help)
   main.py --create-config
   main.py (-d  | --debug ) [<debuglevel>]
+  main.py --global-debug [<debuglevel>]
   main.py
 
 Options:
-  -h, --help       Show this help message and exit
-  --create-config  Find view and reservation ids from hoas site. Makes
-                   multiple requests to site
+  -h, --help                                    Show this help message and exit
+  --create-config                               Find view and reservation ids from hoas site. Makes
+                                                multiple requests to site
+  -d, --debug                                   Set debug level. [default: DEBUG]
 """
 
 import logging
@@ -54,18 +56,16 @@ async def reservation_changes(stream):
         yield format_diff(*sauna_diff(previous, saunas))
         previous = saunas
 
-async def send_to_senso( message):
+
+async def send_to_senso(message):
     await bot.send_message(219882470, message)
 
-if __name__ == "__main__":
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)s:%(message)s",
-        datefmt="%d/%m/%Y %H:%M:%S",
-        level=logging.INFO,
-    )
-    args = docopt(__doc__, version="Sauna-bot 0.0.1")
 
+if __name__ == "__main__":
+
+    args = docopt(__doc__, version="Sauna-bot 0.0.1")
     config = utils.get_hoas_credentials()
+    utils.configure_logging(names=("stream_utils", "notifier", "hoas"), level=logging.DEBUG, base_level=logging.INFO)
 
     if not config or config.get("token") is None or config.get("accounts") is None:
         raise SystemExit(
