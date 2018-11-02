@@ -16,7 +16,7 @@ precommit: format typecheck
 
 .PHONY: typecheck
 typecheck:
-	pipenv run -- mypy --ignore-missing-imports --strict-optional src/
+	pipenv run -- mypy --ignore-missing-imports --strict-optional sauna_bot/
 
 .PHONY: format
 format:
