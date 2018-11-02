@@ -9,7 +9,7 @@ default:
 
 .PHONY: run
 run:
-	pipenv run -- python src/main.py
+	pipenv run -- python -m sauna_bot
 
 .PHONY: precommit
 precommit: format typecheck

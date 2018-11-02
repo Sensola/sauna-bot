@@ -2,11 +2,11 @@ from functools import wraps
 
 from babel import Locale
 
-import templates
-from utils import Commands, get_date
-from userconfigs import UserConfigs
-from dbhelper import DBHelper
-from reservation import SaunaId
+from . import templates
+from .utils import Commands, get_date
+from .userconfigs import UserConfigs
+from .dbhelper import DBHelper
+from .reservation import SaunaId
 
 
 class SaunaBotCommands(Commands):
