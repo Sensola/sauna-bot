@@ -24,4 +24,11 @@ format:
 
 .PHONY: test 
 test:
-	pipenv run -- python -m pytest 
+	pipenv run -- python -m pytest
+
+.PHONY: formatcheck
+formatcheck:
+	pipenv run -- python -m black --py36 --check -q sauna_bot/ && echo "Code style check passed" || (echo "Code style check failed, try 'make format'" && false)
+
+.PHONY: testall
+testall: test formatcheck typecheck
