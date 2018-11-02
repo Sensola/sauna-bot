@@ -12,6 +12,7 @@ import hoasparser
 import templates
 
 
+logger = logging.Logger(__name__)
 class AuthException(Exception):
     """Authentication failed."""
 
@@ -28,22 +29,29 @@ class HoasInterface:
 
     def _login(self) -> None:
         """Create session for handling stuff"""
-
+        logger.info(
+            "HoasInterface: Logged in to {}".format(self.login_params["login"])
+        )
         page = self.session.post(f"{self.BASE_URL}/auth/login", data=self.login_params)
 
         # Hoas site redirects user back to login site if auth fails
         if page.url == f"{self.BASE_URL}/auth/login":
+            logger.critical(
+                "HoasInterface: Logging in to {} failed".format(
+                    self.login_params["user"]
+                )
+            )
             raise AuthException("Login failed")
 
     def get_page(self, *args: Any, **kwargs: Any) -> requests.Response:
         r = self.session.get(*args, **kwargs)
-
+        logger.debug("HoasInterface: get_page {}".format(args))
         if r.url == f"{self.BASE_URL}/auth/login":
             self._login()
             r = self.session.get(*args, **kwargs)
 
             assert r.url != f"{self.BASE_URL}/auth/login"
-
+            logger.info("HoasInterface: got page {}".format(r.url))
         r.encoding = "utf-8"
         return r
 
@@ -59,7 +67,7 @@ class HoasInterface:
         cache_key = frozenset((service, date_path))
         new_request_time = time.time() - cache_time
         if cache_key in self.cache and self.cache[cache_key][0] >= new_request_time:
-            logging.debug(
+            logger.debug(
                 "return from cache",
                 self.cache[cache_key][0],
                 cache_time,
@@ -94,7 +102,7 @@ class Hoas:
                 HoasInterface(account) for account in accounts
             ]
         except Exception:
-            logging.error("Couldn't parse configs")
+            logger.error("Couldn't parse configs")
             raise
 
     def create_config(self) -> dict:
@@ -104,7 +112,6 @@ class Hoas:
             # for stuff in
             page = bs(hoas.view_page(0), "html.parser")
             menus = hoasparser.parse_menu(page)
-            print(menus)
             for i, (service_type, view_id) in enumerate(menus):
                 config[service_type] = {}
                 page = bs(hoas.view_page(view_id), "html.parser")
@@ -112,8 +119,6 @@ class Hoas:
                 view_ids = hoasparser.parse_view_ids(page)
                 # The first viewed sites id is found in menus, but not on page
                 view_ids[0] = view_ids[0][0], menus[i][1]
-                print(view_ids, menus)
-                print(service_type)
                 services_dict: Dict[str, Dict[str, Any]] = {}
                 for name, view_id in view_ids:
                     services_dict.setdefault(name, {"reserve": {}, "view": view_id})
@@ -128,7 +133,6 @@ class Hoas:
                                 hoasparser.get_reservation_ids(soup).items(),
                             )
                         )
-                        print(services_dict)
                         if len(services_dict[name]["reserve"]) and all(
                             services_dict[name]["reserve"].values()
                         ):

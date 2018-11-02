@@ -51,7 +51,6 @@ class UserConfigs:
 
     def send_configs(self, chat_id):
         configs = DBHelper()[chat_id].data
-        print(configs)
         uconfigs = ""
         for key in configs:
             value = configs[key]
