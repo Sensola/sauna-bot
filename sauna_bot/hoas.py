@@ -29,9 +29,7 @@ class HoasInterface:
 
     def _login(self) -> None:
         """Create session for handling stuff"""
-        logger.info(
-            "HoasInterface: Logged in to {}".format(self.login_params["login"])
-        )
+        logger.info("HoasInterface: Logged in to {}".format(self.login_params["login"]))
         page = self.session.post(f"{self.BASE_URL}/auth/login", data=self.login_params)
 
         # Hoas site redirects user back to login site if auth fails

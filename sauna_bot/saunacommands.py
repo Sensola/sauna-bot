@@ -60,7 +60,7 @@ class SaunaBotCommands(Commands):
                 date = get_date(arg, weekdays)
             else:
                 return "Invalid arguments"
-        timetables =  self.hoas_api.get_timetables(service=sauna_id, date=date)
+        timetables = self.hoas_api.get_timetables(service=sauna_id, date=date)
         state = ("Vapaa", "Varattu", "Oma varaus")
         parts = []
         for item in timetables:

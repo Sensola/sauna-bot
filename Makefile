@@ -20,7 +20,7 @@ typecheck:
 
 .PHONY: format
 format:
-	pipenv run -- black --py36 src/
+	pipenv run -- black --py36 sauna_bot/
 
 .PHONY: test 
 test:

@@ -22,4 +22,3 @@ def format_diff(reserved, cancelled):
     if cancelled:
         message += "\nCancelled:\n" + "\n".join(str(sauna) for sauna in cancelled)
     return message
-    
