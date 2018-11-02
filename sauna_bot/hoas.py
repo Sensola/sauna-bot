@@ -7,12 +7,12 @@ from datetime import datetime, timedelta
 import requests
 from bs4 import BeautifulSoup as bs
 
-import hoasparser
-
-import templates
+from . import hoasparser
 
 
 logger = logging.Logger(__name__)
+
+
 class AuthException(Exception):
     """Authentication failed."""
 

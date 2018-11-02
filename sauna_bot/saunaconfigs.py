@@ -1,7 +1,7 @@
 import yaml
 from typing import List, Dict
 import re
-from reservation import SaunaId
+from .reservation import SaunaId
 
 
 def load_config():

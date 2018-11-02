@@ -1,6 +1,6 @@
 import re
 
-from dbhelper import DBHelper
+from .dbhelper import DBHelper
 
 
 class UserConfigs:
