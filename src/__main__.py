@@ -18,22 +18,21 @@ Options:
 
 import logging
 import asyncio
-import argparse
 from os import path
 
-from telepot.aio.loop import MessageLoop
 import yaml
+from telepot.aio.loop import MessageLoop
 from docopt import docopt
 
-import tg
-import hoas
-from dbhelper import DBHelper
-import utils
-from saunaconfigs import load_config, get_sauna_ids
-from saunacommands import SaunaBotCommands
-from stream_utils import poller, filter_repeating
-from templates import format_diff
-from notifier import Notifier
+from . import tg
+from . import hoas
+from .dbhelper import DBHelper
+from . import utils
+from .saunaconfigs import load_config, get_sauna_ids
+from .saunacommands import SaunaBotCommands
+from .stream_utils import poller, filter_repeating
+from .templates import format_diff
+from .notifier import Notifier
 
 def sauna_diff(previous, new):
 
@@ -96,7 +95,7 @@ if __name__ == "__main__":
 
     notif = Notifier(sauna_poller)
     token = config["token"]
-    loop.create_task(send_to_senso("Mui.")) 
+    loop.create_task(send_to_senso("Mui."))
     commands = SaunaBotCommands(hoas_api, sauna_ids, "/")
     bot = tg.SensolaBot(token, commands)
     
