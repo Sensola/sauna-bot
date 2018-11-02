@@ -142,7 +142,7 @@ class Hoas:
 
     def get_timetables(
         self, service: int = 0, date: datetime = None, cache_time=10
-    ) -> str:
+    ) -> List[Tuple[Any, Any, Any]]:
 
         timetables = []
         for account in self.accounts:
@@ -152,7 +152,7 @@ class Hoas:
             timetables.append((topics, cal, left))
         return timetables
 
-    def get_reservations(self) -> str:
+    def get_reservations(self) -> List[Any]:
         sauna_set = set()
         for account in self.accounts:
             page = account.view_page()
