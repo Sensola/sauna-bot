@@ -163,4 +163,4 @@ class Hoas:
         return sorted(sauna_set)
 
     def reserve(self):
-        raise NotImplementedError
+        raise NotImplementedError()
