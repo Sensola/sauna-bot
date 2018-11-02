@@ -65,7 +65,7 @@ def parse_users_reservations(r):
     text = text.replace(chr(0x2011), "-")
 
     # split different parts separated by space and for each item
-    parts = [it.replace(chr(0xa0), " ") for it in text.split(" ")]
+    parts = [it.replace(chr(0xA0), " ") for it in text.split(" ")]
 
     start_time, end_time = parts[1].split("-")
 

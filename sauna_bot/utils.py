@@ -125,7 +125,7 @@ def get_hoas_credentials():
 
 def load_data_to_notifier(configs, notifier, bot):
     """Add callback messages to notifier"""
-    for user_id, lang, onreserve, notify  in configs:
+    for user_id, lang, onreserve, notify in configs:
         if onreserve:
             coro_func = partial(bot.send_message, user_id)
             notifier.subscribe(user_id, coro_func)
@@ -133,11 +133,7 @@ def load_data_to_notifier(configs, notifier, bot):
 
 def configure_logging(names=(), level=logging.INFO, base_level=logging.INFO):
     formatter = logging.Formatter(
-        "%(asctime)s "
-        '%(module)s.'
-        '%(funcName)s: '
-        '%(levelname)s: '
-        '%(message)s '
+        "%(asctime)s " "%(module)s." "%(funcName)s: " "%(levelname)s: " "%(message)s "
     )
 
     stderr_handler = logging.StreamHandler(sys.stderr)

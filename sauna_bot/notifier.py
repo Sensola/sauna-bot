@@ -10,6 +10,7 @@ DEFAULT = object()
 
 logger = logging.Logger(__name__)
 
+
 class Notifier:
     def __init__(self, stream, loop=None):
         if not loop:

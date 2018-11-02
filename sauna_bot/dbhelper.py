@@ -38,11 +38,12 @@ class DBHelper:
         rowdict = dict(zip(self.columns, row))
         del rowdict["user"]
         return DBRow(user, rowdict, self)
-    
+
     def get_all_rows(self):
         stmt = "SELECT * FROM configs"
         rows = self.conn.execute(stmt).fetchall()
         return rows
+
 
 class DBRow:
     def __init__(self, user, data, db):
