@@ -1,24 +1,35 @@
 import asyncio
 import collections
+import logging
+
 from contextlib import contextmanager
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 async def poller(func, args=[], sleep=10 * 60, limit=0, loop=None):
     """ Call :func: every :sleep: seconds and yield result"""
+    if hasattr(func, "__name__"):
+        name = func.__name__
+    else:
+        name = str(func)
     if not loop:
         loop = asyncio.get_event_loop()
     yielded = 0
     calls = 0
-
+    logger.info(f"Starting polling {name} with args {args}")
     while True:
+        print("asdf")
+        logger.info(f"Polling {name}")
         new_result = await loop.run_in_executor(None, func, *args)
-
+        logger.debug(f"Got result {new_result} from {name}")
         yield new_result
         yielded += 1
-
+        logger.debug(f"Sleeping {sleep} ({name})")
         await asyncio.sleep(sleep)
         if limit > 0 and yielded > limit:
+            logger.debug(f"Finished polling {name}")
             break
 
 

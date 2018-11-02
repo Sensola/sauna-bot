@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import collections
 from contextlib import contextmanager
 from datetime import datetime
@@ -7,6 +8,7 @@ from stream_utils import poller, StreamDivider, filter_repeating
 
 DEFAULT = object()
 
+logger = logging.Logger(__name__)
 
 class Notifier:
     def __init__(self, stream, loop=None):
@@ -19,7 +21,9 @@ class Notifier:
         self.loop.create_task(self.sd.run())
 
     async def _new_coro(self, coroutine_callback, limit=0):
+        logger.debug("Created new instance")
         async for update in self.sd.wait_for_updates(limit):
+            logger.debug("Feeding")
             await coroutine_callback(update)
 
     def subscribe(self, sub_id, coroutine_callback, limit=0):
