@@ -108,7 +108,7 @@ def get_hoas_credentials():
             password = getpass.getpass("Password: ")
             token = input("Telegram token: ")
             config = {
-                "accounts": [{"username": username, "password": password}],
+                "accounts": [{"login": username, "password": password}],
                 "token": token,
             }
             if input("Save for later use? y/n ") in positive:
