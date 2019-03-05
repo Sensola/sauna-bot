@@ -11,6 +11,10 @@ class Reservation(namedtuple("Reservation", "start end where info")):
     def __str__(self):
         return f"{self.start:%a %d.%m.%Y from %H:%M} to {self.end:%H:%M} in {self.where} {self.info}"
 
+def parse_csfr_token(soup):
+    for tag in soup.find_all("input"):
+        if tag.get("name") == "csrf_token_name":
+            return tag.get("value")
 
 def get_users_reservations(soup) -> Tuple[list, list, list]:
     """Find users reservations from Beautiful soup object"""
