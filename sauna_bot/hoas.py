@@ -29,13 +29,15 @@ class HoasInterface:
 
     def _login(self) -> None:
         """Create session for handling stuff"""
-        logger.info("HoasInterface: Logging in to {}".format(self.login_params["login"]))
+        logger.info(
+            "HoasInterface: Logging in to {}".format(self.login_params["login"])
+        )
         result = self.session.get(f"{self.BASE_URL}/auth/login")
         data = self.login_params
         # print(self.session.cookies.get("csrf_cookie_name"))
         # print(hoasparser.parse_csfr_token(bs(result.text, "html.parser")))
-        data["csrf_token_name"] = self.session.cookies.get("csrf_cookie_name")
-        
+        token = self.session.cookies.get("csrf_cookie_name")
+        data["csrf_token_name"] = str(token)
         page = self.session.post(f"{self.BASE_URL}/auth/login", data=data)
 
         # Hoas site redirects user back to login site if auth fails
